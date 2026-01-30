@@ -1,0 +1,3819 @@
+<\!DOCTYPE html>  
+<html lang="en">  
+<head>  
+<meta charset="UTF-8" />  
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>  
+<title>TalentScout | Student Talent Pool Dashboard</title>
+
+<\!-- Tailwind CSS (CDN) \-->  
+<script src="https://cdn.tailwindcss.com"></script>
+
+<\!-- Chart.js \-->  
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<\!-- PapaParse \-->  
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<\!-- Lucide Icons \-->  
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<\!-- Google Font \-->  
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800\&display=swap" rel="stylesheet">
+
+<style>  
+:root{  
+  \--indigo:\#4f46e5;  
+  \--violet:\#7c3aed;  
+  \--teal:\#0d9488;  
+  \--amber:\#f59e0b;  
+  \--sky:\#38bdf8;  
+  \--emerald:\#10b981;  
+  \--slate:\#0f172a;  
+  \--base:\#2563eb;  
+  \--final:\#9333ea;  
+  \--q1:\#fecaca;  
+  \--q2:\#f87171;  
+  \--q3:\#dc2626;  
+}  
+\* { box-sizing: border-box; }  
+body {  
+  font-family: "Inter", system-ui, \-apple-system, sans-serif;  
+  background: \#f8fafc;  
+  color: \#0f172a;  
+  margin: 0;  
+  min-height: 100vh;  
+  font-size: 15px;  
+  line-height: 1.55;  
+  letter-spacing: 0.01em;  
+  \-webkit-font-smoothing: antialiased;  
+  text-rendering: optimizeLegibility;  
+}  
+body.modal-open { overflow: hidden; }  
+.card {  
+  background: \#fff;  
+  border: 1px solid \#e2e8f0;  
+  border-radius: 0.9rem;  
+  box-shadow: 0 4px 14px rgba(15,23,42,0.06);  
+}  
+.tab-btn {  
+  padding: 0.5rem 0.85rem;  
+  border-radius: 0.6rem;  
+  font-weight: 600;  
+  font-size: 0.82rem;  
+  letter-spacing: 0.01em;  
+  color: \#475569;  
+  border: 1px solid transparent;  
+  background: transparent;  
+  transition: all 0.2s ease;  
+}  
+.tab-btn.active {  
+  background: \#eef2ff;  
+  border-color: \#e0e7ff;  
+  color: var(--indigo);  
+}  
+.btn {  
+  display: inline-flex;  
+  align-items: center;  
+  gap: 0.5rem;  
+  padding: 0.55rem 0.9rem;  
+  border-radius: 0.6rem;  
+  font-weight: 600;  
+  font-size: 0.82rem;  
+  border: 1px solid transparent;  
+  transition: all 0.2s ease;  
+  cursor: pointer;  
+}  
+.btn-primary { background: var(--indigo); color: \#fff; }  
+.btn-primary:hover { background: \#4338ca; }  
+.btn-outline { background: \#fff; border-color: \#cbd5e1; color: \#0f172a; }  
+.btn-outline:hover { background: \#f8fafc; }  
+.btn-secondary { background: \#eef2ff; color: \#4338ca; border-color: \#e0e7ff; }  
+.btn-secondary:hover { background: \#e0e7ff; }  
+.badge { padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; border: 1px solid transparent; }  
+.badge-l3 { background: \#fef3c7; color: \#92400e; border-color: \#fcd34d; }  
+.badge-l2 { background: \#e0f2fe; color: \#075985; border-color: \#bae6fd; }  
+.badge-l1b { background: \#ecfdf5; color: \#065f46; border-color: \#a7f3d0; }  
+.badge-l1a { background: \#f1f5f9; color: \#475569; border-color: \#e2e8f0; }  
+.student-item {  
+  border: 1px solid transparent;  
+  border-radius: 0.6rem;  
+  padding: 0.65rem;  
+  transition: all 0.15s ease;  
+  cursor: pointer;  
+}  
+.student-item:hover { background: \#f8fafc; }  
+.student-item.active {  
+  background: \#fff;  
+  border-color: \#e0e7ff;  
+  box-shadow: 0 4px 12px rgba(79,70,229,0.12);  
+}  
+.chart-box { height: 540px; position: relative; }  
+@media (max-width: 640px) { .chart-box { height: 360px; } }
+
+/\* Range Slider \*/  
+input\[type=range\] {  
+  \-webkit-appearance: none;  
+  appearance: none;  
+  height: 6px;  
+  border-radius: 999px;  
+  background: \#e2e8f0;  
+  outline: none;  
+}  
+input\[type=range\]::-webkit-slider-thumb {  
+  \-webkit-appearance: none;  
+  appearance: none;  
+  height: 16px; width: 16px;  
+  border-radius: 50%;  
+  background: var(--indigo);  
+  border: 2px solid \#fff;  
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);  
+  cursor: pointer;  
+}  
+.matrix-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }  
+.matrix-table th, .matrix-table td { border: 1px solid \#e2e8f0; padding: 0.35rem; text-align: center; }  
+.matrix-table th { background: \#f8fafc; font-weight: 700; color: \#475569; }  
+.matrix-diag { background: \#f1f5f9; font-weight: 700; color: \#94a3b8; }  
+.matrix-input {  
+  width: 100%;  
+  padding: 0.2rem;  
+  border: none;  
+  text-align: center;  
+  font-weight: 700;  
+  color: \#4f46e5;  
+  background: \#fff;  
+}  
+.matrix-input:focus {  
+  outline: none;  
+  background: \#eef2ff;  
+  box-shadow: inset 0 0 0 2px \#c7d2fe;  
+}  
+.explanation-popover {  
+  position: absolute;  
+  bottom: 105%;  
+  left: 50%;  
+  transform: translateX(-50%);  
+  width: 90%;  
+  max-width: 320px;  
+  background: \#0f172a;  
+  color: white;  
+  padding: 12px;  
+  border-radius: 10px;  
+  font-size: 0.85rem;  
+  box-shadow: 0 10px 15px \-3px rgba(0, 0, 0, 0.2);  
+  z-index: 50;  
+  opacity: 0;  
+  pointer-events: none;  
+  transition: opacity 0.2s;  
+}  
+.explanation-popover.active { opacity: 1; }  
+.table-wrap { max-height: 560px; overflow: auto; }  
+.table-head th { position: sticky; top: 0; background: \#f8fafc; z-index: 10; }  
+.sortable { cursor: pointer; }  
+.sortable::after { content: "↕"; margin-left: 6px; color: \#94a3b8; font-size: 0.75rem; }  
+.sorted-asc::after { content: "↑"; color: \#0f172a; }  
+.sorted-desc::after { content: "↓"; color: \#0f172a; }  
+.chip { padding: 0.3rem 0.6rem; border-radius: 0.65rem; border: 1px solid \#cbd5e1; background: \#fff; font-size: 0.75rem; font-weight: 700; color: \#475569; cursor: pointer; }  
+.chip.active { background: \#eef2ff; border-color: \#e0e7ff; color: var(--indigo); }  
+.legend-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; border-radius: 0.65rem; font-size: 0.7rem; font-weight: 700; border: 1px solid \#e2e8f0; background: \#fff; }  
+.empty-overlay {  
+  border: 2px dashed \#e2e8f0;  
+  border-radius: 1.25rem;  
+  padding: 2rem;  
+  text-align: center;  
+  background: \#fff;  
+}  
+.mode-btn {  
+  padding: 0.45rem 0.8rem;  
+  border-radius: 0.6rem;  
+  font-weight: 600;  
+  font-size: 0.78rem;  
+  color: \#475569;  
+  border: 1px solid \#e2e8f0;  
+  background: \#fff;  
+  transition: all 0.2s ease;  
+}  
+.mode-btn:hover { background: \#f8fafc; }  
+.mode-btn.active {  
+  background: \#eef2ff;  
+  border-color: \#e0e7ff;  
+  color: var(--indigo);  
+}  
+.feature-box {  
+  border: 1px solid \#e2e8f0;  
+  background: \#f8fafc;  
+  border-radius: 0.75rem;  
+  padding: 0.9rem 1rem;  
+}  
+.feature-title { letter-spacing: 0.08em; }  
+.status-suitable { background: \#ecfdf5; color: \#065f46; border-color: \#a7f3d0; }  
+.status-maybe { background: \#fff7ed; color: \#9a3412; border-color: \#fed7aa; }  
+.info-chip {  
+  position: relative;  
+  display: inline-flex;  
+  align-items: center;  
+  gap: 0.35rem;  
+  padding: 0.35rem 0.6rem;  
+  border-radius: 999px;  
+  border: 1px solid \#e2e8f0;  
+  background: \#fff;  
+  font-size: 0.75rem;  
+  font-weight: 700;  
+  color: \#334155;  
+}  
+.info-chip:hover .tooltip-box { opacity: 1; transform: translateY(-4px); pointer-events: auto; }  
+.tooltip-box {  
+  position: absolute;  
+  bottom: 120%;  
+  left: 50%;  
+  transform: translateX(-50%) translateY(0);  
+  min-width: 220px;  
+  max-width: 280px;  
+  background: \#0f172a;  
+  color: \#fff;  
+  font-size: 0.72rem;  
+  padding: 0.5rem 0.6rem;  
+  border-radius: 0.5rem;  
+  opacity: 0;  
+  pointer-events: none;  
+  transition: 0.15s ease;  
+  z-index: 20;  
+}  
+details.collapsible summary {  
+  cursor: pointer;  
+  font-weight: 700;  
+  color: \#334155;  
+  list-style: none;  
+}  
+details.collapsible summary::-webkit-details-marker { display: none; }  
+details.collapsible summary::after {  
+  content: "▾";  
+  float: right;  
+  color: \#94a3b8;  
+  font-weight: 700;  
+}  
+details.collapsible\[open\] summary::after { content: "▴"; }  
+.modal-backdrop {  
+  position: absolute;  
+  inset: 0;  
+  background: rgba(15, 23, 42, 0.5);  
+  backdrop-filter: blur(2px);  
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  padding: 1rem;  
+}  
+.modal-card {  
+  position: relative;  
+  background: \#fff;  
+  border: 1px solid \#e2e8f0;  
+  border-radius: 1rem;  
+  width: 100%;  
+  max-width: 640px;  
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);  
+}
+
+/\* \========================  
+RADAR LAYOUT UPDATE  
+\========================= \*/  
+.radar-card {  
+  background: \#fff;  
+  border: 1px solid \#e2e8f0;  
+  border-radius: 1.25rem;  
+  box-shadow: 0 10px 30px \-10px rgba(0,0,0,0.08);  
+  width: 100%;  
+  overflow: hidden;  
+  display: grid;  
+  grid-template-columns: 380px 1fr;  
+  min-height: 650px;  
+}  
+.profile-col {  
+  padding: 2.25rem;  
+  border-right: 1px solid \#e2e8f0;  
+  background: \#f8fafc;  
+  display: flex;  
+  flex-direction: column;  
+  gap: 1.35rem;  
+  position: relative;  
+}  
+.static-title {  
+  text-transform: uppercase;  
+  letter-spacing: 0.05em;  
+  font-size: 0.75rem;  
+  font-weight: 700;  
+  color: \#94a3b8;  
+  margin-bottom: \-0.5rem;  
+}  
+.student-trigger {  
+  position: relative;  
+  background: \#fff;  
+  border: 1px solid \#e2e8f0;  
+  border-radius: 1rem;  
+  padding: 1.35rem;  
+  cursor: pointer;  
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);  
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);  
+}  
+.student-trigger:hover {  
+  border-color: \#818cf8;  
+  transform: translateY(-2px);  
+  box-shadow: 0 8px 16px \-4px rgba(79, 70, 229, 0.1);  
+}  
+.student-trigger:active { transform: translateY(0); }  
+.trigger-hint {  
+  margin-top: 0.85rem;  
+  padding-top: 0.85rem;  
+  border-top: 1px dashed \#e2e8f0;  
+  color: var(--indigo);  
+  font-size: 0.8rem;  
+  font-weight: 600;  
+  display: flex;  
+  align-items: center;  
+  gap: 0.4rem;  
+}  
+.trigger-hint svg { width: 15px; height: 15px; }  
+.name-lg { font-size: 1.4rem; font-weight: 800; color: \#1e293b; line-height: 1.2; margin-bottom: 0.25rem; }  
+.meta-row { font-size: 0.95rem; color: \#64748b; font-weight: 500; }  
+.chi-name { font-weight: 400; color: \#94a3b8; margin-left: 0.3rem; }  
+.stats-container {  
+  display: flex;  
+  flex-direction: column;  
+  gap: 0.9rem;  
+  margin-top: auto;  
+}  
+.evidence-card {  
+  background: \#fff;  
+  border: 1px solid \#e2e8f0;  
+  border-radius: 0.75rem;  
+  padding: 1.1rem 1.25rem;  
+  cursor: pointer;  
+  transition: all 0.2s;  
+  position: relative;  
+  overflow: hidden;  
+  display: flex;  
+  flex-direction: column;  
+  justify-content: center;  
+}  
+.evidence-card:hover {  
+  border-color: \#cbd5e1;  
+  background: \#f1f5f9;  
+  box-shadow: 0 4px 6px \-1px rgba(0, 0, 0, 0.05);  
+}  
+.evidence-card::after {  
+  content: "→";  
+  position: absolute;  
+  right: 1.1rem;  
+  top: 50%;  
+  transform: translateY(-50%);  
+  color: \#94a3b8;  
+  font-size: 1.25rem;  
+  opacity: 0;  
+  transition: 0.2s;  
+}  
+.evidence-card:hover::after { opacity: 1; right: 0.9rem; }  
+.ev-label {  
+  font-size: 0.7rem;  
+  font-weight: 700;  
+  text-transform: uppercase;  
+  color: \#64748b;  
+  letter-spacing: 0.03em;  
+  margin-bottom: 0.55rem;  
+  line-height: 1.3;  
+}  
+.talent-item {  
+  display: flex;  
+  align-items: center;  
+  gap: 0.6rem;  
+  margin-bottom: 0.45rem;  
+  color: \#1e293b;  
+  font-weight: 700;  
+  font-size: 1rem;  
+}  
+.talent-bullet {  
+  width: 7px;  
+  height: 7px;  
+  border-radius: 50%;  
+  background-color: var(--emerald);  
+  flex-shrink: 0;  
+}  
+.talent-hint {  
+  font-size: 0.75rem;  
+  color: \#6366f1;  
+  font-weight: 600;  
+  margin-top: 0.6rem;  
+  display: flex;  
+  align-items: center;  
+  gap: 0.35rem;  
+  opacity: 0.9;  
+}  
+.talent-hint svg { width: 13px; height: 13px; }  
+.status-available {  
+  color: \#4338ca;  
+  font-weight: 700;  
+  font-size: 0.9rem;  
+  display: flex;  
+  align-items: center;  
+  gap: 0.5rem;  
+}  
+.status-icon {  
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  width: 20px;  
+  height: 20px;  
+  background: \#e0e7ff;  
+  color: \#4338ca;  
+  border-radius: 50%;  
+  font-size: 0.7rem;  
+}  
+.status-empty {  
+  color: \#cbd5e1;  
+  font-style: italic;  
+  font-weight: 500;  
+  font-size: 0.9rem;  
+}  
+.median-stat-box {  
+  background: \#f8fafc;  
+  border: 1px solid \#e2e8f0;  
+  border-radius: 0.75rem;  
+  padding: 0.9rem 1.25rem;  
+  display: flex;  
+  align-items: center;  
+  justify-content: space-between;  
+}  
+.med-label { font-size: 0.8rem; font-weight: 700; color: \#475569; }  
+.med-sub { font-size: 0.7rem; color: \#94a3b8; margin-top: 0.15rem; }  
+.med-val { font-size: 1.6rem; font-weight: 800; color: \#4f46e5; line-height: 1; }  
+.detail-overlay {  
+  position: absolute;  
+  inset: 0;  
+  background: \#fff;  
+  z-index: 60;  
+  padding: 2.5rem;  
+  transform: translateX(-100%);  
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);  
+  display: flex;  
+  flex-direction: column;  
+}  
+.detail-overlay.active { transform: translateX(0); }  
+.detail-header {  
+  display: flex;  
+  align-items: center;  
+  gap: 0.5rem;  
+  margin-bottom: 1.75rem;  
+  color: \#64748b;  
+  font-size: 0.9rem;  
+  font-weight: 600;  
+  cursor: pointer;  
+}  
+.detail-header:hover { color: \#334155; }  
+.detail-title { font-size: 1.25rem; font-weight: 800; color: \#0f172a; margin-bottom: 1.25rem; }  
+.detail-content { font-size: 1rem; line-height: 1.6; color: \#334155; background: \#f8fafc; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid \#e2e8f0; flex: 1; overflow-y: auto; }  
+.detail-meta { font-size: 0.8rem; color: \#64748b; margin-top: 0.75rem; font-style: italic; }  
+.selection-popover {  
+  position: absolute;  
+  top: 0; left: 0;  
+  width: 100%;  
+  height: 100%;  
+  background: \#fff;  
+  z-index: 70;  
+  display: flex;  
+  flex-direction: column;  
+  transition: transform 0.25s ease, opacity 0.2s ease;  
+  transform: translateX(-10px);  
+  opacity: 0;  
+  pointer-events: none;  
+}  
+.selection-popover.active { transform: translateX(0); opacity: 1; pointer-events: auto; }  
+.popover-header { padding: 1.75rem; border-bottom: 1px solid \#e2e8f0; background: \#f8fafc; }  
+.filter-row { display: flex; gap: 0.75rem; margin-top: 0.75rem; }  
+.class-select { padding: 0.75rem; border: 1px solid \#cbd5e1; border-radius: 0.6rem; font-size: 0.9rem; background: \#fff; color: \#334155; outline: none; cursor: pointer; }  
+.search-input { flex: 1; padding: 0.75rem 1rem; border: 1px solid \#cbd5e1; border-radius: 0.6rem; font-size: 0.9rem; outline: none; transition: all 0.2s; }  
+.search-input:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }  
+.student-list { flex: 1; overflow-y: auto; padding: 0.75rem; }  
+.list-item { padding: 0.9rem 1.25rem; border-radius: 0.6rem; cursor: pointer; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center; }  
+.list-item:hover { background: \#f1f5f9; }  
+.list-item.active { background: \#eef2ff; }  
+.list-item.active .list-name { color: var(--indigo); font-weight: 700; }  
+.list-name { font-size: 1rem; font-weight: 600; color: \#334155; }  
+.list-sub { font-size: 0.85rem; color: \#64748b; }  
+.chart-col {  
+  padding: 2.25rem 2.25rem 1.5rem 2.25rem;  
+  display: flex;  
+  flex-direction: column;  
+  position: relative;  
+}  
+.chart-container { position: relative; flex: 1; width: 100%; min-height: 450px; }  
+.chart-hint {  
+  text-align: center;  
+  font-size: 0.85rem;  
+  color: \#64748b;  
+  margin-top: 0.75rem;  
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  gap: 0.5rem;  
+}  
+.chart-hint span {  
+  display: inline-flex;  
+  align-items: center;  
+  justify-content: center;  
+  width: 16px; height: 16px;  
+  background: \#e0e7ff;  
+  color: \#4338ca;  
+  border-radius: 50%;  
+  font-size: 0.7rem;  
+  font-weight: bold;  
+}  
+.radar-tooltip {  
+  position: absolute;  
+  background: \#1e293b;  
+  color: \#fff;  
+  padding: 1rem 1.25rem;  
+  border-radius: 0.75rem;  
+  font-size: 0.9rem;  
+  line-height: 1.5;  
+  max-width: 320px;  
+  box-shadow: 0 10px 25px \-5px rgba(0,0,0,0.15);  
+  pointer-events: none;  
+  opacity: 0;  
+  transition: opacity 0.2s, transform 0.2s;  
+  transform: translateY(5px);  
+  z-index: 100;  
+}  
+.radar-tooltip.active { opacity: 1; transform: translateY(0); }  
+.filter-bar {  
+  margin-top: 1.5rem;  
+  padding-top: 1.25rem;  
+  border-top: 1px solid \#f1f5f9;  
+  display: flex;  
+  align-items: center;  
+  gap: 1.5rem;  
+  flex-wrap: wrap;  
+}  
+.filter-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: \#94a3b8; letter-spacing: 0.05em; margin-right: 0.5rem; }  
+.filter-group { display: flex; gap: 0.85rem; flex-wrap: wrap; }  
+.filter-chip {  
+  display: inline-flex;  
+  align-items: center;  
+  gap: 0.5rem;  
+  padding: 0.5rem 1rem;  
+  border-radius: 999px;  
+  font-size: 0.85rem;  
+  font-weight: 600;  
+  cursor: pointer;  
+  border: 1px solid \#e2e8f0;  
+  background: \#fff;  
+  color: \#64748b;  
+  transition: all 0.2s ease;  
+  user-select: none;  
+}  
+.filter-chip:hover { background: \#f8fafc; border-color: \#cbd5e1; }  
+.filter-chip.active { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }  
+.chip-dot { width: 9px; height: 9px; border-radius: 50%; background: \#cbd5e1; }  
+.filter-chip\[data-target="final"\].active { background: \#f5f3ff; border-color: \#ddd6fe; color: \#5b21b6; }  
+.filter-chip\[data-target="final"\].active .chip-dot { background: \#9333ea; }  
+.filter-chip\[data-target="base"\].active { background: \#eff6ff; border-color: \#bfdbfe; color: \#1e40af; }  
+.filter-chip\[data-target="base"\].active .chip-dot { background: \#2563eb; }  
+.filter-chip\[data-target="edb"\].active { background: \#f0fdf4; border-color: \#bbf7d0; color: \#166534; }  
+.filter-chip\[data-target="edb"\].active .chip-dot { background: conic-gradient(\#fcd34d 0% 25%, \#bae6fd 25% 50%, \#a7f3d0 50% 75%, \#f1f5f9 75% 100%); }  
+.filter-chip\[data-target="q1"\].active { background: \#fff1f2; border-color: \#fecdd3; color: \#9f1239; }  
+.filter-chip\[data-target="q1"\].active .chip-dot { background: \#f43f5e; }  
+.filter-chip\[data-target="median"\].active { background: \#fef2f2; border-color: \#fecaca; color: \#991b1b; }  
+.filter-chip\[data-target="median"\].active .chip-dot { background: \#ef4444; }  
+.filter-chip\[data-target="q3"\].active { background: \#fff5f5; border-color: \#fca5a5; color: \#7f1d1d; }  
+.filter-chip\[data-target="q3"\].active .chip-dot { background: \#991b1b; }  
+@media (max-width: 900px) {  
+  .radar-card { grid-template-columns: 1fr; }  
+  .profile-col { border-right: none; border-bottom: 1px solid \#e2e8f0; }  
+  .detail-overlay { transform: translateY(100%); transition: transform 0.3s ease; }  
+  .detail-overlay.active { transform: translateY(0); }  
+}
+
+/\* \========================  
+SCORE EXPLANATION (DUAL-TRACK)  
+\========================= \*/  
+.score-explainer .bar-transition { transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease; }  
+.score-explainer .card-hover-trigger:hover .card-front { transform: translateY(-5px); opacity: 0; pointer-events: none; }  
+.score-explainer .card-hover-trigger:hover .card-back { opacity: 1; transform: translateY(0); pointer-events: auto; }  
+.score-explainer .card-back { opacity: 0; transform: translateY(10px); pointer-events: none; }  
+.score-explainer input\[type=range\] {  
+  \-webkit-appearance: none;  
+  width: 100%;  
+  background: transparent;  
+  cursor: pointer;  
+}  
+.score-explainer input\[type=range\]:focus { outline: none; }  
+.score-explainer input\[type=range\]::-webkit-slider-thumb {  
+  \-webkit-appearance: none;  
+  height: 24px;  
+  width: 24px;  
+  border-radius: 50%;  
+  background: \#4f46e5;  
+  border: 4px solid \#fff;  
+  box-shadow: 0 4px 6px \-1px rgba(79, 70, 229, 0.4);  
+  cursor: pointer;  
+  margin-top: \-10px;  
+  transition: transform 0.1s;  
+}  
+.score-explainer input\[type=range\]::-webkit-slider-thumb:active { transform: scale(1.1); }  
+.score-explainer input\[type=range\]::-webkit-slider-runnable-track {  
+  width: 100%;  
+  height: 6px;  
+  cursor: pointer;  
+  background: \#e2e8f0;  
+  border-radius: 999px;  
+}  
+.score-explainer .lock-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }  
+@keyframes shake {  
+  10%, 90% { transform: translateX(-1px); }  
+  20%, 80% { transform: translateX(2px); }  
+  30%, 50%, 70% { transform: translateX(-4px); }  
+  40%, 60% { transform: translateX(4px); }  
+}  
+.score-explainer .ring-selected { box-shadow: 0 0 0 2px white, 0 0 0 4px \#4f46e5; }  
+.score-explainer .text-gradient {  
+  background-clip: text;  
+  \-webkit-background-clip: text;  
+  \-webkit-text-fill-color: transparent;  
+}
+
+/\* \========================  
+AHP 3.1 WIZARD STYLES  
+\========================= \*/  
+@keyframes pulse-ring {  
+  0% { transform: scale(0.8); opacity: 0.5; }  
+  100% { transform: scale(1.2); opacity: 0; }  
+}  
+.animate-pulse-ring { animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1\) infinite; }
+
+/\* Scrollbar \*/  
+::-webkit-scrollbar { width: 6px; }  
+::-webkit-scrollbar-track { background: \#f1f5f9; }  
+::-webkit-scrollbar-thumb { background: \#cbd5e1; border-radius: 3px; }  
+::-webkit-scrollbar-thumb:hover { background: \#94a3b8; }
+
+.step-active { background-color: \#4f46e5; border-color: \#4f46e5; color: white; }  
+.step-inactive { background-color: white; border-color: \#cbd5e1; color: \#64748b; }  
+.matrix-cell { transition: all 0.2s; }  
+.matrix-cell:hover { background-color: \#f8fafc; transform: scale(1.05); z-index: 10; border-radius: 4px; box-shadow: 0 4px 6px \-1px rgba(0, 0, 0, 0.1); }  
+.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+
+/\* Range Slider (AHP 3.1) \*/  
+input\[type=range\]::-webkit-slider-thumb {  
+  \-webkit-appearance: none;  
+  height: 14px;  
+  width: 14px;  
+  border-radius: 50%;  
+  background: \#4f46e5;  
+  cursor: pointer;  
+  margin-top: \-5px;  
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);  
+}  
+input\[type=range\]::-webkit-slider-runnable-track {  
+  width: 100%;  
+  height: 4px;  
+  cursor: pointer;  
+  background: linear-gradient(to right, \#ef4444 0%, \#ef4444 50%, \#3b82f6 50%, \#3b82f6 100%);  
+  border-radius: 2px;  
+}
+
+/\* Firefox Range Slider \*/  
+input\[type=range\]::-moz-range-thumb {  
+  height: 14px;  
+  width: 14px;  
+  border-radius: 50%;  
+  background: \#4f46e5;  
+  cursor: pointer;  
+  border: none;  
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);  
+}  
+input\[type=range\]::-moz-range-track {  
+  background: transparent;  
+  border: none;  
+}  
+input\[type=range\]::-moz-range-progress {  
+  background-color: \#ef4444;  
+  height: 4px;  
+  border-radius: 2px;  
+}
+
+/\* Tooltip Container \*/  
+.tooltip {  
+  position: relative;  
+  display: inline-block;  
+}  
+.tooltip .tooltip-text {  
+  visibility: hidden;  
+  width: 260px;  
+  background-color: \#1e293b;  
+  color: \#fff;  
+  text-align: left;  
+  border-radius: 8px;  
+  padding: 12px;  
+  position: absolute;  
+  z-index: 100;  
+  bottom: 130%;  
+  left: 50%;  
+  transform: translateX(-50%);  
+  opacity: 0;  
+  transition: opacity 0.3s, bottom 0.3s;  
+  font-size: 12px;  
+  line-height: 1.5;  
+  font-weight: normal;  
+  box-shadow: 0 10px 15px \-3px rgba(0, 0, 0, 0.1);  
+  pointer-events: none;  
+}  
+.tooltip .tooltip-text::after {  
+  content: "";  
+  position: absolute;  
+  top: 100%;  
+  left: 50%;  
+  margin-left: \-5px;  
+  border-width: 5px;  
+  border-style: solid;  
+  border-color: \#1e293b transparent transparent transparent;  
+}  
+.tooltip:hover .tooltip-text {  
+  visibility: visible;  
+  opacity: 1;  
+  bottom: 140%;  
+}
+
+.result-row { cursor: pointer; }  
+</style>  
+</head>
+
+<body>
+
+<\!-- Usage Alert Modal \-->  
+<div id="usageModal" class="fixed inset-0 z-50 hidden">  
+  <div class="modal-backdrop">  
+    <div class="modal-card">  
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-3">  
+        <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold">\!</div>  
+        <div>  
+          <div class="text-base font-extrabold text-slate-900">Model Use Notice</div>  
+          <div class="text-xs text-slate-500">Please review before using the model</div>  
+        </div>  
+      </div>  
+      <div class="p-6 text-sm text-slate-700 space-y-3">  
+        <ul class="list-disc list-inside space-y-2">  
+          <li>The main purpose of the model is talent scouting, not further labeling.</li>  
+          <li>Scoring can mean that students' own engagement are not fully recorded by the school.</li>  
+          <li>The reliability and depth of student records are sourced from the eClass system.</li>  
+        </ul>  
+        <div class="text-xs text-slate-500">  
+          By continuing, you acknowledge these limits and will use the outputs as professional guidance only.  
+        </div>  
+        <div class="pt-2 flex justify-end">  
+          <button class="btn btn-primary" id="btnAcknowledge">I Understand</button>  
+        </div>  
+      </div>  
+    </div>  
+  </div>  
+</div>
+
+<header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">  
+  <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">  
+    <div class="flex items-center gap-3">  
+      <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-extrabold">TS</div>  
+      <div>  
+        <div class="text-lg font-extrabold text-slate-900 tracking-tight">  
+          Talent<span class="text-indigo-600">Scout</span>  
+        </div>  
+        <div class="text-xs text-slate-500 font-medium">Student Talent Pool Dashboard</div>  
+      </div>  
+    </div>
+
+    <div class="flex flex-wrap gap-2 items-center">  
+      <button class="tab-btn active" id="tabRadar">Individual Profile</button>  
+      <button class="tab-btn" id="tabScout">Talent Search (AI AHP)</button>  
+    </div>
+
+    <div class="flex flex-wrap gap-2 items-center">  
+      <span id="dataBadge" class="text-xs font-bold text-slate-500 px-2 py-1 rounded bg-slate-100 border border-slate-200 hidden">0 students loaded</span>  
+      <button class="btn btn-secondary" id="btnLoadDemo">Load Demo Data</button>  
+      <button class="btn btn-outline" id="btnTemplate">Download CSV Template</button>  
+      <label class="btn btn-primary">  
+        Upload CSV  
+        <input type="file" id="fileInput" accept=".csv" class="hidden">  
+      </label>  
+    </div>  
+  </div>  
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+  <\!-- Empty State \-->  
+  <section id="emptyState" class="empty-overlay">  
+    <div class="text-2xl font-extrabold text-slate-800 mb-2">Welcome to the Talent Pool Model</div>  
+    <p class="text-slate-500 max-w-2xl mx-auto mb-6">  
+      Upload your <strong>Talent Pool Student Data CSV</strong> to view individual intelligence profiles  
+      and run AI‑assisted AHP matching or custom weighting for activities.  
+    </p>  
+    <div class="flex flex-wrap justify-center gap-3 mb-6">  
+      <button class="btn btn-primary" id="btnUploadFromEmpty">Upload CSV</button>  
+      <button class="btn btn-secondary" id="btnDemoFromEmpty">Load Demo Data</button>  
+      <button class="btn btn-outline" id="btnTemplateFromEmpty">Download CSV Template</button>  
+    </div>  
+    <details class="text-left max-w-3xl mx-auto collapsible">  
+      <summary>Quick Start (for new users)</summary>  
+      <ol class="list-decimal list-inside text-sm text-slate-600 mt-3 space-y-2">  
+        <li>Upload CSV or load demo data.</li>  
+        <li>Select a student to view the <strong>Base vs Final</strong> radar chart.</li>  
+        <li>Use the EDB tier bands and quartile lines to interpret the profile.</li>  
+        <li>Switch to <strong>Talent Search</strong> and run AI AHP.</li>  
+      </ol>  
+    </details>  
+  </section>
+
+  <\!-- View: Radar \-->  
+  <section id="viewRadar" class="hidden space-y-6">
+
+    <\!-- Radar Layout (Updated) \-->  
+    <div class="radar-card">
+
+      <\!-- LEFT COL \-->  
+      <div class="profile-col">  
+        <div class="static-title">Multiple Intelligence Profile of</div>  
+        <div class="student-trigger" id="studentTrigger">  
+          <div id="displayProfile">  
+            <div class="name-lg" id="pName">Select a student</div>  
+            <div class="meta-row">  
+              <span id="pClass">--</span>  
+              <span id="pNum">--</span> ·  
+              <span id="pGender">--</span>  
+              <span class="chi-name" id="pChi">--</span>  
+            </div>  
+          </div>  
+          <div class="trigger-hint">  
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">  
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>  
+            </svg>  
+            Click to find / change student  
+          </div>  
+        </div>
+
+        <div class="stats-container">  
+          <div class="evidence-card" id="cardTalents">  
+            <div class="ev-label">Talented Aspects (Score ≥ 7)</div>  
+            <div id="pTalentsContainer"></div>  
+          </div>  
+          <div class="evidence-card" id="cardPortfolio">  
+            <div class="ev-label">Verified External Portfolio Submitted by Students</div>  
+            <div id="pPortfolio"></div>  
+          </div>  
+          <div class="evidence-card" id="cardTeacher">  
+            <div class="ev-label">Teacher Verified Records Beyond eClass System</div>  
+            <div id="pTeacher"></div>  
+          </div>  
+          <div class="median-stat-box">  
+            <div>  
+              <div class="med-label" id="pMedianLabel">Domains Above Median (Final)</div>  
+              <div class="med-sub" id="pMedianSub">All Students · n=0</div>  
+              <div class="mt-3 flex flex-wrap gap-2">  
+                <select id="medianQuartileSelect" class="px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 text-xs font-semibold">  
+                  <option value="q1">Above Q1 (25%)</option>  
+                  <option value="median" selected>Above Median (50%)</option>  
+                  <option value="q3">Above Q3 (75%)</option>  
+                </select>  
+                <select id="medianGroupSelect" class="px-2 py-1 rounded border border-slate-200 bg-white text-slate-600 text-xs font-semibold">  
+                  <option value="all" selected>All Students</option>  
+                  <option value="class">Same Class</option>  
+                  <option value="filtered">Filtered List</option>  
+                </select>  
+              </div>  
+            </div>  
+            <span class="med-val" id="pMedianCount">0 / 9</span>  
+          </div>  
+        </div>
+
+        <\!-- DETAIL SLIDE-OVER \-->  
+        <div class="detail-overlay" id="detailOverlay">  
+          <div class="detail-header" id="detailBack">  
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"  
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"  
+              stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>  
+            Back to Profile  
+          </div>  
+          <div class="detail-title" id="detailTitle">Title</div>  
+          <div class="detail-content" id="detailContent">Content...</div>  
+          <div class="detail-meta" id="detailMeta"></div>  
+        </div>
+
+        <\!-- STUDENT SELECTION POPOVER \-->  
+        <div class="selection-popover" id="selectionPanel">  
+          <div class="popover-header">  
+            <div class="flex justify-between items-center mb-2">  
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">Select Student</span>  
+              <button id="closeSelection" class="text-slate-400 hover:text-slate-600">✕</button>  
+            </div>  
+            <div class="filter-row">  
+              <select id="panelClass" class="class-select">  
+                <option value="all">All Classes</option>  
+              </select>  
+              <input type="text" id="panelSearch" class="search-input" placeholder="Search name..." autocomplete="off">  
+            </div>  
+          </div>  
+          <div class="student-list" id="panelStudentList"></div>  
+        </div>  
+      </div>
+
+      <\!-- RIGHT COL \-->  
+      <div class="chart-col">  
+        <div class="chart-container" id="radarContainer">  
+          <canvas id="radarChart"></canvas>  
+          <div id="chartTooltip" class="radar-tooltip"></div>  
+        </div>  
+        <div class="chart-hint">  
+          <span>ⓘ</span> Click the intelligence names (e.g. "Musical") to see explanations and exact scores  
+        </div>  
+        <div class="filter-bar">  
+          <span class="filter-label">Chart Layers</span>  
+          <div class="filter-group">  
+            <button class="filter-chip active" data-target="final"><span class="chip-dot"></span> Final</button>  
+            <button class="filter-chip" data-target="base"><span class="chip-dot"></span> Base</button>  
+            <button class="filter-chip active" data-target="edb"><span class="chip-dot"></span> Growth Zones</button>  
+            <button class="filter-chip" data-target="q1"><span class="chip-dot"></span> Q1 (25%)</button>  
+            <button class="filter-chip" data-target="median"><span class="chip-dot"></span> Median (50%)</button>  
+            <button class="filter-chip" data-target="q3"><span class="chip-dot"></span> Q3 (75%)</button>  
+          </div>  
+        </div>  
+      </div>  
+    </div>
+
+    <\!-- Scoring System Explanation (Dual-Track Logic) \-->  
+    <section class="score-explainer space-y-12">  
+      <div class="text-center max-w-3xl mx-auto space-y-3">  
+        <div class="inline-flex items-center justify-center p-2 bg-slate-100 rounded-xl mb-2">  
+          <i data-lucide="layers" class="w-6 h-6 text-slate-700"></i>  
+        </div>  
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Scoring System Explained</h2>  
+        <p class="text-slate-500 font-medium text-lg">A "Dual-Track" approach to holistic assessment.</p>  
+      </div>
+
+      <div class="space-y-8">  
+        <div class="flex items-center gap-3 px-2">  
+          <div class="h-px bg-slate-200 flex-1"></div>  
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1. The Anatomy of a Score</span>  
+          <div class="h-px bg-slate-200 flex-1"></div>  
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">  
+          <\!-- Pillar 1: Base (Capacity) \-->  
+          <div class="relative h-72 group cursor-pointer card-hover-trigger">  
+            <div class="card-front absolute inset-0 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center transition-all duration-300 z-10">  
+              <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">  
+                <i data-lucide="brain-circuit" class="w-7 h-7"></i>  
+              </div>  
+              <h3 class="text-xl font-bold text-slate-800">Base Layer</h3>  
+              <p class="text-indigo-600 font-semibold text-sm uppercase tracking-wider mt-1 mb-4">Capacity Anchor</p>  
+              <p class="text-slate-400 text-xs px-4">Establishes the "floor" of talent based on hard academic data.</p>  
+            </div>  
+            <div class="card-back absolute inset-0 bg-indigo-600 rounded-2xl shadow-xl p-6 flex flex-col justify-center text-white z-20">  
+              <h4 class="font-bold text-lg mb-2 flex items-center gap-2">  
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-200"></i>  
+                Measuring Potential  
+              </h4>  
+              <p class="text-indigo-100 text-sm leading-relaxed mb-4">  
+                Measures raw capability using academic percentiles (e.g., Top 20% Math).  
+                It provides the starting point (0-6) before engagement is considered.  
+              </p>  
+              <div class="mt-auto pt-3 border-t border-indigo-500 flex justify-between text-xs font-bold uppercase tracking-wide text-indigo-200">  
+                <span>Range</span>  
+                <span>0 \- 6 Points</span>  
+              </div>  
+            </div>  
+          </div>
+
+          <\!-- Pillar 2: Booster (Engagement) \-->  
+          <div class="relative h-72 group cursor-pointer card-hover-trigger">  
+            <div class="card-front absolute inset-0 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center transition-all duration-300 z-10">  
+              <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">  
+                <i data-lucide="zap" class="w-7 h-7"></i>  
+              </div>  
+              <h3 class="text-xl font-bold text-slate-800">Booster Layer</h3>  
+              <p class="text-emerald-600 font-semibold text-sm uppercase tracking-wider mt-1 mb-4">Engagement Multiplier</p>  
+              <p class="text-slate-400 text-xs px-4">Rewards the depth of student passion and commitment.</p>  
+            </div>  
+            <div class="card-back absolute inset-0 bg-emerald-600 rounded-2xl shadow-xl p-6 flex flex-col justify-center text-white z-20">  
+              <h4 class="font-bold text-lg mb-2 flex items-center gap-2">  
+                <i data-lucide="trophy" class="w-4 h-4 text-emerald-200"></i> Measuring Passion  
+              </h4>  
+              <p class="text-emerald-100 text-sm leading-relaxed mb-4">  
+                Rewards active participation, leadership roles, and external awards. It  
+                distinguishes the "capable" from the "committed."  
+              </p>  
+              <div class="mt-auto pt-3 border-t border-emerald-500 flex justify-between text-xs font-bold uppercase tracking-wide text-emerald-200">  
+                <span>Range</span>  
+                <span>+0 \- 4 Points</span>  
+              </div>  
+            </div>  
+          </div>
+
+          <\!-- Pillar 3: The Gate (Safeguard) \-->  
+          <div class="relative h-72 group cursor-pointer card-hover-trigger">  
+            <div class="card-front absolute inset-0 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center transition-all duration-300 z-10">  
+              <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">  
+                <i data-lucide="shield-check" class="w-7 h-7"></i>  
+              </div>  
+              <h3 class="text-xl font-bold text-slate-800">Consistency Gate</h3>  
+              <p class="text-rose-600 font-semibold text-sm uppercase tracking-wider mt-1 mb-4">Holistic Safeguard</p>  
+              <p class="text-slate-400 text-xs px-4">A critical check to prevent score inflation from mismatched abilities.</p>  
+            </div>  
+            <div class="card-back absolute inset-0 bg-rose-600 rounded-2xl shadow-xl p-6 flex flex-col justify-center text-white z-20">  
+              <h4 class="font-bold text-lg mb-2 flex items-center gap-2">  
+                <i data-lucide="lock" class="w-4 h-4 text-rose-200"></i> Reality Check  
+              </h4>  
+              <p class="text-rose-100 text-sm leading-relaxed mb-4">  
+                Prevents score inflation. A student cannot reach "Exceptionally Gifted"  
+                (Level 3\) via activities alone without a strong foundational base.  
+              </p>  
+              <div class="mt-auto pt-3 border-t border-rose-500 flex justify-between text-xs font-bold uppercase tracking-wide text-rose-200">  
+                <span>Action</span>  
+                <span>Hard Caps Score</span>  
+              </div>  
+            </div>  
+          </div>  
+        </div>
+
+        <\!-- The Formula Visualization \-->  
+        <div class="mt-8 bg-slate-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-2xl">  
+          <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="sigma" class="w-32 h-32"></i></div>  
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">The Triangulation Formula</h4>  
+          <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 font-mono text-sm md:text-lg">  
+            <div class="text-center group">  
+              <div class="text-indigo-400 font-bold text-2xl mb-1">Base</div>  
+              <div class="text-xs text-slate-500 uppercase">Capacity (0-6)</div>  
+            </div>  
+            <div class="text-slate-500 text-2xl">+</div>  
+            <div class="text-center group">  
+              <div class="text-emerald-400 font-bold text-2xl mb-1">Booster</div>  
+              <div class="text-xs text-slate-500 uppercase">Engagement (0-4)</div>  
+            </div>  
+            <div class="flex flex-col items-center px-4 relative">  
+              <div class="h-px w-16 bg-rose-500/50"></div>  
+              <div class="text-\[10px\] text-rose-400 font-bold uppercase my-1 flex items-center gap-1">  
+                <i data-lucide="git-commit-horizontal" class="w-3 h-3"></i> Gate Check  
+              </div>  
+              <div class="h-px w-16 bg-rose-500/50"></div>  
+            </div>  
+            <div class="text-center bg-white/10 p-4 rounded-xl border border-white/10 shadow-lg">  
+              <div class="text-white font-black text-3xl mb-1 tracking-tight">Final Score</div>  
+              <div class="text-xs text-slate-400 uppercase">Intelligence (0-10)</div>  
+            </div>  
+          </div>  
+        </div>  
+      </div>
+
+      <div class="space-y-6">  
+        <div class="flex items-center gap-3 px-2">  
+          <div class="h-px bg-slate-200 flex-1"></div>  
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">2. Case Study Simulation</span>  
+          <div class="h-px bg-slate-200 flex-1"></div>  
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">  
+          <button onclick="loadPreset('academic')" class="group text-left bg-white border border-slate-200 p-5 rounded-2xl hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden">  
+            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="graduation-cap" class="w-16 h-16 text-indigo-600"></i></div>  
+            <div class="relative z-10">  
+              <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">The Specialist</div>  
+              <h3 class="text-lg font-bold text-slate-900 mb-1">Academic Star</h3>  
+              <p class="text-xs text-slate-500 leading-relaxed">High test scores but low school engagement. Can they reach Level 3 purely on grades?</p>  
+            </div>  
+          </button>
+
+          <button onclick="loadPreset('balanced')" class="group text-left bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-400 hover:shadow-md transition-all relative overflow-hidden">  
+            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="scale" class="w-16 h-16 text-emerald-600"></i></div>  
+            <div class="relative z-10">  
+              <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">The All-Rounder</div>  
+              <h3 class="text-lg font-bold text-slate-900 mb-1">Balanced Achiever</h3>  
+              <p class="text-xs text-slate-500 leading-relaxed">Good grades and consistent team participation. See how the "Booster" lifts them up.</p>  
+            </div>  
+          </button>
+
+          <button onclick="loadPreset('gatekeeper')" class="group text-left bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-400 hover:shadow-md transition-all relative overflow-hidden">  
+            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="shield-alert" class="w-16 h-16 text-rose-600"></i></div>  
+            <div class="relative z-10">  
+              <div class="text-xs font-bold text-rose-600 uppercase tracking-wider mb-2">The Mismatch</div>  
+              <h3 class="text-lg font-bold text-slate-900 mb-1">Gatekeeper Case</h3>  
+              <p class="text-xs text-slate-500 leading-relaxed">Elite activity levels but struggling academically. Watch the "Consistency Gate" activate.</p>  
+            </div>  
+          </button>  
+        </div>
+
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-center gap-3 text-center">  
+          <i data-lucide="mouse-pointer-click" class="w-5 h-5 text-indigo-500 animate-bounce"></i>  
+          <span class="text-sm font-medium text-indigo-800">Select a persona above, or <span class="font-bold underline cursor-pointer" onclick="resetSim()">experiment freely below</span> to see how the score reacts\!</span>  
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-lg border border-slate-200 grid grid-cols-1 lg:grid-cols-2">  
+          <div class="p-6 md:p-8 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col gap-8 bg-slate-50/50">
+
+            <div class="space-y-4">  
+              <div class="flex justify-between items-end">  
+                <label class="text-sm font-bold text-slate-700 flex items-center gap-2">  
+                  <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs">A</span>  
+                  Base Capacity  
+                </label>  
+                <div class="text-right">  
+                  <div class="text-2xl font-black text-slate-800" id="percentile-disp">Top 50%</div>  
+                  <div class="text-\[10px\] text-slate-400 font-bold uppercase tracking-wider">Subject Percentile</div>  
+                </div>  
+              </div>  
+              <div class="relative pt-2">  
+                <input type="range" id="base-slider" min="1" max="100" value="50" step="1" oninput="manualUpdate()">  
+                <div class="flex justify-between mt-2 text-\[10px\] text-slate-400 font-bold uppercase">  
+                  <span>Top 1%</span>  
+                  <span>Avg</span>  
+                  <span>Bottom</span>  
+                </div>  
+              </div>  
+              <details class="group">  
+                <summary class="flex items-center gap-2 text-xs font-bold text-indigo-600 cursor-pointer list-none select-none">  
+                  <i data-lucide="help-circle" class="w-4 h-4"></i>  
+                  <span>What is Percentile?</span>  
+                  <i data-lucide="chevron-down" class="w-3 h-3 transition-transform group-open:rotate-180"></i>  
+                </summary>  
+                <div class="mt-2 p-3 bg-indigo-50 rounded-lg border border-indigo-100 text-xs text-slate-600 leading-relaxed">  
+                  <p class="mb-1"><strong class="text-indigo-700">Definition:</strong> Your rank compared to the entire form.</p>  
+                  <p><strong class="text-indigo-700">Example:</strong> "Top 10%" means you performed better than 90% of your peers. Smaller numbers are better (Top 1% is best).</p>  
+                </div>  
+              </details>  
+            </div>
+
+            <div class="space-y-4">  
+              <div class="flex justify-between items-end">  
+                <label class="text-sm font-bold text-slate-700 flex items-center gap-2">  
+                  <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">B</span>  
+                  Booster Activities  
+                </label>  
+                <div class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">  
+                  Adds up to \+4 Points  
+                </div>  
+              </div>  
+              <div class="grid grid-cols-1 gap-3">
+
+                <button onclick="toggleActivity(1)" id="act-1" class="group flex items-start gap-4 p-3 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 transition-all text-left">  
+                  <div class="w-5 h-5 mt-1 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 transition-colors group-hover:border-indigo-400" id="check-1"><div class="w-2.5 h-2.5 bg-white rounded-full opacity-0"></div></div>  
+                  <div class="flex-1">  
+                    <div class="text-sm font-bold text-slate-700">Participation (Exposure)</div>  
+                    <div class="text-xs text-slate-500 mt-1">Minor engagement. Interest groups, workshops, or simple club membership.</div>  
+                  </div>  
+                  <span class="text-xs font-bold text-slate-300 group-hover:text-indigo-500">+1</span>  
+                </button>
+
+                <button onclick="toggleActivity(2)" id="act-2" class="group flex items-start gap-4 p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-300 transition-all text-left">  
+                  <div class="w-5 h-5 mt-1 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 transition-colors group-hover:border-emerald-400" id="check-2"><div class="w-2.5 h-2.5 bg-white rounded-full opacity-0"></div></div>  
+                  <div class="flex-1">  
+                    <div class="text-sm font-bold text-slate-700">Competence (Ability)</div>  
+                    <div class="text-xs text-slate-500 mt-1">Standard expectation. School team member, committee role, or internal merit.</div>  
+                  </div>  
+                  <span class="text-xs font-bold text-slate-300 group-hover:text-emerald-500">+2</span>  
+                </button>
+
+                <button onclick="toggleActivity(3)" id="act-3" class="group flex items-start gap-4 p-3 rounded-xl border border-slate-200 bg-white hover:border-sky-300 transition-all text-left">  
+                  <div class="w-5 h-5 mt-1 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 transition-colors group-hover:border-sky-400" id="check-3"><div class="w-2.5 h-2.5 bg-white rounded-full opacity-0"></div></div>  
+                  <div class="flex-1">  
+                    <div class="text-sm font-bold text-slate-700">Distinction (Potential)</div>  
+                    <div class="text-xs text-slate-500 mt-1">External recognition. District awards or high-volume participation (4-5 related activities).</div>  
+                  </div>  
+                  <span class="text-xs font-bold text-slate-300 group-hover:text-sky-500">+3</span>  
+                </button>
+
+                <button onclick="toggleActivity(4)" id="act-4" class="group flex items-start gap-4 p-3 rounded-xl border border-slate-200 bg-white hover:border-amber-300 transition-all text-left">  
+                  <div class="w-5 h-5 mt-1 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 transition-colors group-hover:border-amber-400" id="check-4"><div class="w-2.5 h-2.5 bg-white rounded-full opacity-0"></div></div>  
+                  <div class="flex-1">  
+                    <div class="text-sm font-bold text-slate-700">Eminence (Excellence)</div>  
+                    <div class="text-xs text-slate-500 mt-1">The "Killer" activity. Territory-wide/International awards or HKAGE membership.</div>  
+                  </div>  
+                  <span class="text-xs font-bold text-slate-300 group-hover:text-amber-500">+4</span>  
+                </button>
+
+              </div>  
+            </div>  
+          </div>
+
+          <div class="p-6 md:p-8 flex flex-col justify-between gap-8 bg-white relative">  
+            <div>  
+              <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Projected Profile</h2>  
+              <div class="flex items-center justify-between">  
+                <div>  
+                  <div class="text-6xl font-black text-slate-900 tracking-tighter leading-none" id="final-score">4.0</div>  
+                  <div class="text-sm font-medium text-slate-500 mt-1">Total Intelligence Score</div>  
+                </div>  
+                <div id="tier-badge" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wide border border-slate-200">  
+                  Level 1A: Core  
+                </div>  
+              </div>  
+            </div>
+
+            <div class="relative py-8">  
+              <div class="absolute inset-x-0 \-top-4 \-bottom-4 grid grid-cols-10 opacity-20 pointer-events-none">  
+                <div class="col-span-4 border-r border-slate-300 bg-slate-100"></div>  
+                <div class="col-span-2 border-r border-slate-300 bg-emerald-100"></div>  
+                <div class="col-span-2 border-r border-slate-300 bg-sky-100"></div>  
+                <div class="col-span-2 bg-amber-100"></div>  
+              </div>
+
+              <div class="relative z-10 grid grid-cols-10 text-\[9px\] font-bold uppercase text-slate-400 tracking-wider text-center mb-1">  
+                <div class="col-span-4">Core</div>  
+                <div class="col-span-2">High</div>  
+                <div class="col-span-2">Pool</div>  
+                <div class="col-span-2">Gifted</div>  
+              </div>
+
+              <div class="relative h-12 w-full bg-slate-100 rounded-xl overflow-hidden shadow-inner flex items-center z-20 ring-1 ring-slate-900/5">  
+                <div id="bar-base" class="h-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold bar-transition shadow-lg relative z-20" style="width: 40%">  
+                  Base 4  
+                </div>  
+                <div id="bar-booster" class="h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold bar-transition relative z-10 border-l border-white/20" style="width: 0%"></div>  
+                <div id="bar-cap" class="h-full bg-rose-100/50 flex items-center justify-center bar-transition relative z-0" style="width: 0%; background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(225, 29, 72, 0.1) 5px, rgba(225, 29, 72, 0.1) 10px);"></div>  
+              </div>
+
+              <div id="lock-icon" class="absolute top-1/2 left-0 \-translate-y-1/2 w-8 h-8 bg-white rounded-full border-2 border-rose-500 text-rose-500 flex items-center justify-center shadow-lg z-30 hidden transition-all" style="left: 0;">  
+                <i data-lucide="lock" class="w-4 h-4"></i>  
+              </div>
+
+              <div class="relative z-10 flex justify-between text-\[10px\] text-slate-300 font-mono mt-1 px-1">  
+                <span>0</span>  
+                <span>10</span>  
+              </div>  
+            </div>
+
+            <div id="analysis-box" class="bg-slate-50 rounded-2xl p-5 border border-slate-200 transition-colors duration-500">  
+              <div class="flex gap-3">  
+                <div class="mt-0.5 shrink-0">  
+                  <i data-lucide="info" class="w-5 h-5 text-slate-400" id="analysis-icon"></i>  
+                </div>  
+                <div>  
+                  <h4 class="text-sm font-bold text-slate-800 mb-1" id="analysis-title">Analysis</h4>  
+                  <p class="text-xs leading-relaxed text-slate-600" id="analysis-text">  
+                    Select a persona or adjust the sliders to begin the simulation.  
+                  </p>  
+                </div>  
+              </div>  
+            </div>
+
+          </div>  
+        </div>
+
+      </div>  
+    </section>
+
+    <\!-- Smooth transition between sections \-->  
+    <div class="flex items-center gap-4">  
+      <div class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>  
+      <div class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-50 via-emerald-50 to-amber-50 border border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">  
+        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-indigo-600 border border-slate-200">➜</span>  
+        From Scores to Growth Zones  
+      </div>  
+      <div class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>  
+    </div>
+
+    <\!-- Zones of Development \-->  
+    <section class="space-y-8">  
+      <div class="max-w-5xl mx-auto text-center space-y-3">  
+        <h2 class="text-3xl font-bold text-slate-800">Your Talent Development Journey</h2>  
+        <p class="text-slate-600 max-w-2xl mx-auto">  
+          Our model triangulates your <strong>Potential</strong>, <strong>Passion</strong>, and <strong>Performance</strong> to map your current growth zone.  
+          Intelligence is fluid—explore where you stand today.  
+        </p>  
+      </div>
+
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">  
+        <div class="bg-white rounded-xl shadow-sm border-l-4 border-blue-400 overflow-hidden hover:shadow-md transition-shadow">  
+          <div class="p-6">  
+            <div class="flex justify-between items-center mb-4">  
+              <h2 class="text-xl font-bold text-slate-800">Universal Exploration</h2>  
+              <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">Score 1-4</span>  
+            </div>  
+            <p class="text-slate-600 text-sm mb-4">  
+              <strong>The Foundation Phase.</strong> You are building essential knowledge and versatility. This is a time for discovery—exploring diverse subjects to find where your true interests lie.  
+            </p>  
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">  
+              <p class="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">Our Support Strategy</p>  
+              <p class="text-sm text-slate-700">Broad exposure through high-quality classroom learning and introductory club activities.</p>  
+            </div>  
+          </div>  
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border-l-4 border-emerald-400 overflow-hidden hover:shadow-md transition-shadow">  
+          <div class="p-6">  
+            <div class="flex justify-between items-center mb-4">  
+              <h2 class="text-xl font-bold text-slate-800">Potential & Enrichment</h2>  
+              <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">Score 5-6</span>  
+            </div>  
+            <p class="text-slate-600 text-sm mb-4">  
+              <strong>The Spark Phase.</strong> You are showing curiosity and capacity. You grasp concepts quickly and respond well to challenges, signaling readiness to go beyond the standard curriculum.  
+            </p>  
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">  
+              <p class="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">Our Support Strategy</p>  
+              <p class="text-sm text-slate-700">Differentiation in class and "taster" workshops to stretch your thinking and test your commitment.</p>  
+            </div>  
+          </div>  
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border-l-4 border-violet-500 overflow-hidden hover:shadow-md transition-shadow">  
+          <div class="p-6">  
+            <div class="flex justify-between items-center mb-4">  
+              <h2 class="text-xl font-bold text-slate-800">Advanced Development</h2>  
+              <span class="bg-violet-100 text-violet-800 text-xs font-semibold px-3 py-1 rounded-full">Score 7-8</span>  
+            </div>  
+            <p class="text-slate-600 text-sm mb-4">  
+              <strong>The Commitment Phase.</strong> You combine ability with action. Through school teams, leadership roles, or consistent service, you are demonstrating the discipline required to turn potential into talent.  
+            </p>  
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">  
+              <p class="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">Our Support Strategy</p>  
+              <p class="text-sm text-slate-700"><strong>School Talent Pool:</strong> Specialized team training, leadership appointments, and pull-out programs.</p>  
+            </div>  
+          </div>  
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border-l-4 border-amber-500 overflow-hidden hover:shadow-md transition-shadow">  
+          <div class="p-6">  
+            <div class="flex justify-between items-center mb-4">  
+              <h2 class="text-xl font-bold text-slate-800">Distinction & Specialization</h2>  
+              <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full">Score 9-10</span>  
+            </div>  
+            <p class="text-slate-600 text-sm mb-4">  
+              <strong>The Mastery Phase.</strong> You operate at a sophisticated level. Your profile suggests readiness for external validation and high-stakes challenges beyond the school context.  
+            </p>  
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">  
+              <p class="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">Our Support Strategy</p>  
+              <p class="text-sm text-slate-700"><strong>External Nomination:</strong> Priority for HKAGE membership, university credit courses, and elite competitions.</p>  
+            </div>  
+          </div>  
+        </div>  
+      </div>
+
+      <div class="max-w-4xl mx-auto mt-2 bg-slate-100 rounded-lg p-4 border border-slate-200">  
+        <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center">  
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">  
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"  
+              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>  
+          </svg>  
+          A Note on Performance Arts (Music & Drama)  
+        </h3>  
+        <p class="text-xs text-slate-600">  
+          For <strong>Music, Drama, and Sports</strong>, scores are heavily influenced by your engagement. A score of <strong>1-2</strong> simply means we haven't seen your records yet—not that you lack ability\! A score of <strong>9-10</strong> in these areas often indicates professional-grade qualifications or university readiness.  
+        </p>  
+      </div>  
+    </section>  
+  </section>
+
+  <\!-- View: Talent Search \-->  
+  <section id="viewScout" class="hidden space-y-6">  
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <\!-- LEFT PANEL: AHP 3.1 Wizard \-->  
+      <div class="col-span-12 lg:col-span-4 space-y-6">
+
+        <\!-- Step 1: Context \-->  
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative group hover:shadow-md transition-shadow">  
+          <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-tl-xl rounded-bl-xl"></div>  
+          <div class="flex items-center gap-3 mb-5">  
+            <div id="badge-1" class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-active shadow-sm z-10 transition-colors">1</div>  
+            <h2 class="font-bold text-slate-800 text-lg">Search Context</h2>  
+          </div>
+
+          <div class="space-y-4">  
+            <div class="grid grid-cols-2 gap-3">  
+              <div>  
+                <label class="block text-\[10px\] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Target Cohort</label>  
+                <select id="cohortSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 block p-2.5">  
+                  <option value="all">All Forms</option>  
+                </select>  
+              </div>  
+              <div>  
+                <label class="block text-\[10px\] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Class/Group</label>  
+                <select id="classSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 block p-2.5">  
+                  <option value="all">All Classes</option>  
+                </select>  
+              </div>  
+            </div>
+
+            <div>  
+              <label class="block text-\[10px\] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Role Title</label>  
+              <input type="text" id="activityName" value="Debate Team Captain" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 block w-full p-2.5 font-medium">  
+            </div>
+
+            <div>  
+              <label class="block text-\[10px\] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Role Requirements</label>  
+              <div class="relative">  
+                <textarea id="activityDesc" rows="4" class="block p-3 w-full text-sm text-slate-900 bg-slate-50 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 resize-none">Needs someone with strong logical thinking to construct arguments, but also high leadership skills to manage the team. Public speaking (linguistic) is essential, but less important than the ability to lead under pressure.</textarea>  
+                <div class="absolute bottom-2 right-2 text-slate-400"><i data-lucide="pen-tool" class="w-4 h-4"></i></div>  
+              </div>  
+            </div>
+
+            <div>  
+              <label class="block text-\[10px\] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Novita API Key</label>  
+              <input type="password" id="novitaKeyInput" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 block w-full p-2.5 font-medium" placeholder="Paste Novita API key">  
+              <p class="text-\[10px\] text-slate-400 mt-1">Used only during this session (not stored).</p>  
+            </div>
+
+          </div>  
+        </div>
+
+        <\!-- Step 2: AI Priority Analysis \-->  
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative group hover:shadow-md transition-shadow">  
+          <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 transition-colors rounded-tl-xl rounded-bl-xl" id="step-2-bar"></div>
+
+          <div class="flex items-center justify-between mb-5">  
+            <div class="flex items-center gap-3">  
+              <div id="badge-2" class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-inactive border-2 bg-white z-10 transition-colors">2</div>  
+              <h2 class="font-bold text-slate-800 text-lg">AI Priority Analysis</h2>  
+              <div class="tooltip">  
+                <i data-lucide="help-circle" class="w-4 h-4 text-slate-400 cursor-help"></i>  
+                <span class="tooltip-text">  
+                  The AI breaks down your requirements into weighted criteria using the Analytic Hierarchy Process (AHP).  
+                  It calculates exactly how much more important one skill is compared to another.  
+                </span>  
+              </div>  
+            </div>  
+          </div>
+
+          <div class="space-y-5">  
+            <button id="btn-analyze" onclick="runAHPAnalysis()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-\[0.98\] text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-indigo-200 transition-all flex items-center justify-center gap-2 group">  
+              <i data-lucide="sparkles" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>  
+              <span>Generate Logic & Weights</span>  
+            </button>
+
+            <\!-- Processing State \-->  
+            <div id="ai-processing" class="hidden">  
+              <div class="flex justify-between text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">  
+                <span id="ai-status-text">Connecting...</span>  
+                <span id="ai-timer" class="font-mono text-indigo-600">0.0s</span>  
+              </div>  
+              <div class="w-full bg-slate-100 rounded-full h-2.5 mb-6 overflow-hidden relative">  
+                <div class="absolute top-0 left-0 h-full w-full bg-slate-100 opacity-50 bg-\[length:20px\_20px\] bg-\[linear-gradient(45deg,rgba(255,255,255,.15)\_25%,transparent\_25%,transparent\_50%,rgba(255,255,255,.15)\_50%,rgba(255,255,255,.15)\_75%,transparent\_75%,transparent)\] animate-\[pulse\_1s\_linear\_infinite\]"></div>  
+                <div id="ai-progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out relative" style="width: 5%"></div>  
+              </div>  
+            </div>
+
+            <\!-- Results Area \-->  
+            <div id="ahp-results" class="hidden space-y-5 pt-4 border-t border-slate-100">  
+              <div class="flex items-center justify-between">  
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Priorities</h3>  
+                <span class="text-\[10px\] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded border border-emerald-200 uppercase tracking-wide">  
+                  CR: <span id="cr-val">0.04</span>  
+                </span>  
+              </div>  
+              <div id="weight-bars" class="space-y-3"></div>  
+              <div class="pt-3">  
+                <button onclick="showReasoningModal()" class="w-full py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-indigo-600 hover:text-indigo-800 font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">  
+                  <i data-lucide="sliders-horizontal" class="w-3 h-3"></i> Calibrate Matrix & Logic  
+                </button>  
+              </div>  
+            </div>  
+          </div>  
+        </div>
+
+        <\!-- Step 3: Minimum Requirements \-->  
+        <div id="step-3-container" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative group hover:shadow-md transition-shadow opacity-50 pointer-events-none grayscale">  
+          <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 transition-colors rounded-tl-xl rounded-bl-xl" id="step-3-bar"></div>  
+          <div class="flex items-center gap-3 mb-5">  
+            <div id="badge-3" class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-inactive border-2 bg-white z-10 transition-colors">3</div>  
+            <h2 class="font-bold text-slate-800 text-lg">Minimum Requirements</h2>  
+          </div>
+
+          <div id="filter-controls">  
+            <p class="text-\[10px\] uppercase font-bold text-slate-400 mb-3 tracking-wider">Intelligence Lower Bounds (1-10)</p>  
+            <div id="dynamic-filters" class="space-y-4">  
+              <p class="text-xs text-slate-400 italic">Run analysis to generate filters...</p>  
+            </div>  
+          </div>  
+        </div>
+
+      </div>
+
+      <\!-- Right Column: Candidate Fit MAIN \-->  
+      <div class="col-span-12 lg:col-span-8 space-y-6">
+
+        <div class="card p-5">  
+          <div class="flex flex-wrap gap-3 items-center justify-between mb-3">  
+            <div>  
+              <div class="text-xl font-extrabold text-slate-800">Candidate Fit</div>  
+              <div class="text-xs text-slate-500">Auto‑ranking is off by default. Click a column header to sort.</div>  
+            </div>  
+            <button class="btn btn-outline" id="btnExport">Export CSV</button>  
+          </div>
+
+          <details class="collapsible">  
+            <summary>Filters</summary>  
+            <div class="flex flex-wrap gap-3 mt-3">  
+              <input id="resultSearch" class="px-3 py-2 rounded-lg border border-slate-200 text-sm" placeholder="Search student">  
+              <select id="resultCohort" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">  
+                <option value="all">All Forms</option>  
+              </select>  
+              <select id="resultClass" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">  
+                <option value="all">All Classes</option>  
+              </select>  
+              <select id="resultGender" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">  
+                <option value="all">All Genders</option>  
+                <option value="M">Male</option>  
+                <option value="F">Female</option>  
+              </select>  
+              <select id="resultStatus" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">  
+                <option value="all">All Status</option>  
+                <option value="suitable">Suitable</option>  
+                <option value="may-not-fit">May not fit</option>  
+              </select>  
+              <select id="resultMinReq" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">  
+                <option value="apply" selected>Apply Min Requirements</option>  
+                <option value="ignore">Ignore Min Requirements</option>  
+              </select>  
+              <select id="resultTopN" class="px-3 py-2 rounded-lg border border-slate-200 text-sm">  
+                <option value="10">Top 10</option>  
+                <option value="20">Top 20</option>  
+                <option value="50">Top 50</option>  
+                <option value="all" selected>All</option>  
+              </select>  
+            </div>  
+          </details>
+
+          <div class="mt-3 text-xs text-slate-500">  
+            Suggested benchmark: <span id="fitThresholdValue" class="font-bold text-slate-700">—</span>  
+            · <span id="fitThresholdReason">—</span>  
+            · <span id="statusCounts" class="text-slate-500">—</span>  
+          </div>
+
+          <div class="text-xs text-slate-400 mt-1">  
+            The system suggests a benchmark. Final matching decisions should be made by professional judgement based on match % and context.  
+          </div>
+
+          <div class="table-wrap mt-4">  
+            <table class="w-full text-sm border-collapse">  
+              <thead class="table-head text-xs text-slate-500 uppercase">  
+                <tr>  
+                  <th class="px-3 py-3 text-center sortable" data-sort="status">Match Status</th>  
+                  <th class="px-3 py-3 sortable" data-sort="name">Student</th>  
+                  <th class="px-3 py-3 text-center sortable bg-indigo-50 text-indigo-700" data-sort="match">Match %</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="lin\_chi">CHI</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="lin\_eng">ENG</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="log\_math">LOG</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="spatial">SPA</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="musical">MUS</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="bodily">BOD</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="inter">LEAD</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="intra">INTRA</th>  
+                  <th class="px-2 py-3 text-center sortable" data-sort="nature">NAT</th>  
+                </tr>  
+              </thead>  
+              <tbody id="resultsBody" class="divide-y divide-slate-100">  
+                <tr>  
+                  <td colspan="12" class="px-6 py-12 text-center text-slate-400">Load data and run AI Priority Analysis to see results.</td>  
+                </tr>  
+              </tbody>  
+            </table>  
+          </div>  
+        </div>
+
+        <div class="text-xs text-slate-500">  
+          \*Match % is computed by weighted mean on intelligence scores (normalized to 0 to 100).  
+        </div>  
+      </div>
+
+    </div>  
+  </section>
+
+  <div class="text-xs text-slate-400 text-center pb-6">  
+    This dashboard supports EDB’s Three‑Tier Model. It is an aid to professional judgement, not a replacement.  
+  </div>
+
+</main>
+
+<\!-- Modal: Reasoning Inspector \-->  
+<div id="reasoning-modal" class="fixed inset-0 z-\[100\] flex items-center justify-center px-4 hidden opacity-0 transition-opacity duration-300">  
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="hideReasoningModal()"></div>
+
+  <div id="reasoning-modal-content" class="glass rounded-2xl shadow-2xl w-full max-w-5xl relative z-10 transform scale-95 transition-transform duration-300 max-h-\[90vh\] flex flex-col border border-white/50">  
+    <div class="p-6 border-b border-slate-200/50 flex items-center justify-between">  
+      <div class="flex items-center gap-3">  
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-lg text-white shadow-lg shadow-indigo-200">  
+          <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>  
+        </div>  
+        <div>  
+          <h3 class="font-bold text-slate-900 text-lg">Matrix Calibration</h3>  
+          <p class="text-xs text-slate-500 font-medium">Adjust the relative importance of criteria to fine-tune the model.</p>  
+        </div>  
+      </div>  
+      <button onclick="hideReasoningModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">  
+        <i data-lucide="x" class="w-5 h-5"></i>  
+      </button>  
+    </div>
+
+    <div class="p-8 overflow-y-auto space-y-8 flex-1">  
+      <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-4 items-start">  
+        <div class="bg-blue-100 text-blue-600 p-2 rounded-lg shrink-0">  
+          <i data-lucide="lightbulb" class="w-5 h-5"></i>  
+        </div>  
+        <div>  
+          <h4 class="text-sm font-bold text-blue-900 mb-1">How to Calibrate</h4>  
+          <p class="text-xs text-blue-800 leading-relaxed mb-3">  
+            The matrix determines priorities by comparing criteria in pairs.  
+            <strong>Read from ROW to COLUMN.</strong>  
+            If you disagree with the AI, click a cell to change the value.  
+          </p>
+
+          <div class="flex items-center gap-3 text-xs font-mono bg-white p-2 rounded border border-blue-100 inline-flex">  
+            <span class="font-bold text-slate-700">\[ Leadership \]</span>  
+            <div class="flex flex-col items-center">  
+              <span class="text-\[10px\] text-blue-500 font-bold mb-0.5">5x Stronger</span>  
+              <div class="h-0.5 w-12 bg-blue-300"></div>  
+              <span class="text-\[10px\] text-blue-300">------></span>  
+            </div>  
+            <span class="font-bold text-slate-700">\[ English \]</span>  
+          </div>
+
+          <p class="text-\[10px\] text-blue-600 mt-2 italic">  
+            "Leadership is 5 times more important than English."  
+          </p>  
+        </div>  
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">  
+        <\!-- Section 1: Matrix (3 cols) \-->  
+        <div class="lg:col-span-3">  
+          <div class="flex items-center justify-between mb-4">  
+            <h4 class="text-xs font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">  
+              <i data-lucide="grid" class="w-4 h-4"></i> Pairwise Matrix  
+            </h4>  
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 overflow-hidden">  
+            <div id="matrix-table" class="grid gap-px bg-slate-200 text-sm text-center font-medium text-slate-600 rounded-lg overflow-hidden border border-slate-200"></div>  
+          </div>
+
+          <div id="matrix-translation" class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-800 min-h-\[50px\] flex items-center justify-center text-center italic transition-all">  
+            Hover over a cell to translate the math into English...  
+          </div>  
+        </div>
+
+        <\!-- Section 2: Narrative (2 cols) \-->  
+        <div class="lg:col-span-2 flex flex-col">  
+          <h4 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-4 flex items-center gap-2">  
+            <i data-lucide="bot" class="w-4 h-4"></i> AI Strategic Reasoning  
+          </h4>  
+          <div id="ai-reasoning-text" class="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-\[400px\]"></div>  
+        </div>  
+      </div>  
+    </div>
+
+    <div class="p-4 border-t border-slate-200/50 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3">  
+      <div class="flex-1 flex items-center gap-4 text-\[10px\] text-slate-400 font-medium uppercase tracking-wider pl-4">  
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-200"></span> 1 Equal</span>  
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span> 3 Moderate</span>  
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400"></span> 5 Strong</span>  
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-500"></span> 7 Very Strong</span>  
+      </div>  
+      <button onclick="hideReasoningModal()" class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-lg text-xs hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all">Apply & Close</button>  
+    </div>  
+  </div>  
+</div>
+
+<script>  
+/\* \=========================  
+CONFIG & DATA STRUCTURE  
+\========================= \*/  
+const NOVITA\_API\_URL \= 'https://api.novita.ai/v3/openai/chat/completions';  
+const NOVITA\_MODEL\_ID \= 'meta-llama/llama-3.3-70b-instruct';  
+let NOVITA\_API\_KEY \= ''; // Optional fallback key (preferred: enter via UI)
+
+const FEATURE\_INDEX \= 24;  
+const PORTFOLIO\_INDEX \= 25;  
+const TEACHER\_INDEX \= 26;
+
+const INTELLIGENCES \= \[  
+  { id: 'lin\_chi', label: 'Linguistic (Chinese)', short: 'CHI', baseIndex: 6, finalIndex: 15, labelLines: \['Linguistic','(Chinese)'\], evidence: 'Chinese writing, debate, speech, literature projects.' },  
+  { id: 'lin\_eng', label: 'Linguistic (English)', short: 'ENG', baseIndex: 7, finalIndex: 16, labelLines: \['Linguistic','(English)'\], evidence: 'English writing, public speaking, debate, drama.' },  
+  { id: 'log\_math', label: 'Logical-Mathematical', short: 'LOG', baseIndex: 8, finalIndex: 17, labelLines: \['Logical-','Mathematical'\], evidence: 'Math/Science excellence, coding, problem solving.' },  
+  { id: 'spatial', label: 'Spatial (Visual)', short: 'SPA', baseIndex: 9, finalIndex: 18, labelLines: \['Spatial','(Visual)'\], evidence: 'Design, visual arts, geometry, architecture sense.' },  
+  { id: 'musical', label: 'Musical', short: 'MUS', baseIndex: 10, finalIndex: 19, labelLines: \['Musical'\], evidence: 'ABRSM/Trinity, orchestra, choir performance.' },  
+  { id: 'bodily', label: 'Bodily-Kinaesthetic', short: 'BOD', baseIndex: 11, finalIndex: 20, labelLines: \['Bodily-','Kinaesthetic'\], evidence: 'Sports teams, dance, athletics, coordination.' },  
+  { id: 'inter', label: 'Leadership (Interpersonal)', short: 'LEAD', baseIndex: 12, finalIndex: 21, labelLines: \['Leadership','(Interpersonal)'\], evidence: 'Prefect, committee, peer leadership, service.' },  
+  { id: 'intra', label: 'Intrapersonal', short: 'INTRA', baseIndex: 13, finalIndex: 22, labelLines: \['Intrapersonal'\], evidence: 'Self-discipline, reflection, independent projects.' },  
+  { id: 'nature', label: 'Naturalistic', short: 'NAT', baseIndex: 14, finalIndex: 23, labelLines: \['Naturalistic'\], evidence: 'Biology, geography, eco projects, field study.' }  
+\];
+
+const DOMAINS \= {  
+  'lin\_chi': 'Linguistic (Chinese)',  
+  'lin\_eng': 'Linguistic (English)',  
+  'log\_math': 'Logical-Math',  
+  'spatial': 'Visual-Spatial',  
+  'musical': 'Musical',  
+  'bodily': 'Bodily-Kinesthetic',  
+  'inter': 'Leadership (Interpersonal)',  
+  'intra': 'Intrapersonal',  
+  'nature': 'Naturalistic'  
+};
+
+let students \= \[\];  
+let missingCount \= 0;  
+let filteredStudentsCache \= \[\];  
+let radarChart \= null;  
+let currentStudentId \= null;
+
+let showBase \= false;  
+let showFinal \= true;  
+let showZones \= true;  
+let showQ1 \= false;  
+let showMedian \= false;  
+let showQ3 \= false;
+
+let compareGroup \= 'all';  
+let quartileSource \= 'final';
+let quartileLevel \= 'median';
+
+let currentWeights \= {};  
+let currentSort \= { key: null, dir: 'desc' };  
+let hasUserSorted \= false;
+
+let ahpResult \= null;  
+let criteriaThresholds \= {};
+
+let scoreBlend \= 100;
+
+let alertAccepted \= false;  
+let labelHitBoxes \= \[\];
+
+/\* \=========================  
+UTILITIES  
+\========================= \*/  
+const qs \= (id) \=> document.getElementById(id);
+
+function tierFromScore(score){  
+  if (score >= 9\) return { label: 'L3', class: 'badge-l3' };  
+  if (score >= 7\) return { label: 'L2', class: 'badge-l2' };  
+  if (score >= 5\) return { label: 'L1B', class: 'badge-l1b' };  
+  return { label: 'L1A', class: 'badge-l1a' };  
+}
+
+function safeNum(v){  
+  const n \= Number(v);  
+  return Number.isFinite(n) ? n : 0;  
+}
+
+function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }  
+function unique(arr){ return \[...new Set(arr)\]; }
+
+function formatScore(val){  
+  const n \= Number(val);  
+  if (\!Number.isFinite(n)) return '—';  
+  const rounded \= Math.round(n * 10) / 10;  
+  return String(rounded).replace(/\\.0$/, '');  
+}
+
+function getQuartileLabel(level){  
+  if (level \=\=\= 'q1') return 'Lower Quartile (Q1)';  
+  if (level \=\=\= 'q3') return 'Upper Quartile (Q3)';  
+  return 'Median';  
+}
+
+function syncMedianControls(){  
+  const q \= qs('medianQuartileSelect');  
+  if (q && q.value \!== quartileLevel) q.value \= quartileLevel;  
+  const g \= qs('medianGroupSelect');  
+  if (g && g.value \!== compareGroup) g.value \= compareGroup;  
+}
+
+function toNumber(val){  
+  if (typeof val \=== 'number' && Number.isFinite(val)) return val;  
+  if (typeof val \=== 'string'){  
+    const t \= val.trim();  
+    if (t.includes('/')){  
+      const \[a,b\] \= t.split('/');  
+      const na \= parseFloat(a), nb \= parseFloat(b);  
+      if (Number.isFinite(na) && Number.isFinite(nb) && nb \!== 0\) return na/nb;  
+    }  
+    const n \= parseFloat(t);  
+    if (Number.isFinite(n)) return n;  
+  }  
+  return NaN;  
+}
+
+function escapeHTML(str){  
+  return String(str || '')  
+    .replace(/&/g,'\&amp;')  
+    .replace(/</g,'\&lt;')  
+    .replace(/>/g,'\&gt;')  
+    .replace(/"/g,'\&quot;')  
+    .replace(/'/g,'&\#39;');  
+}
+
+function sanitizeText(input, maxLen){  
+  const clean \= String(input || '')  
+    .replace(/\[\\u0000-\\u001F\\u007F\]/g, ' ')  
+    .replace(/\\s+/g, ' ')  
+    .trim();  
+  if (maxLen && clean.length > maxLen) return clean.slice(0, maxLen).trim();  
+  return clean;  
+}
+
+function getNovitaKey(){  
+  const field \= qs('novitaKeyInput');  
+  const raw \= String(field?.value || NOVITA\_API\_KEY || '');  
+  const cleaned \= raw.replace(/\\s+/g, '').trim();  
+  if (\!cleaned || cleaned.length < 10\) throw new Error('Please enter a valid Novita API key.');  
+  if (cleaned.length > 200\) throw new Error('API key appears invalid or too long.');  
+  return cleaned;  
+}
+
+function csvEscape(value){  
+  const s \= String(value ?? '');  
+  if (/\[",\\n\]/.test(s)) return \`"${s.replace(/"/g,'""')}"\`;  
+  return s;  
+}
+
+function toSafeHTML(text){  
+  return escapeHTML(text).replace(/\\n/g, '<br>');  
+}
+
+function getCohortKey(cls){  
+  const m \= String(cls || '').match(/S(\\d+)/i);  
+  return m ? \`S${m\[1\]}\`.toUpperCase() : '';  
+}  
+function cohortLabel(key){  
+  const num \= key.replace(/^S/i,'');  
+  return num ? \`Secondary ${num}\` : 'Unknown';  
+}
+
+function syncSelectValue(sourceEl, targetEl){  
+  if (\!sourceEl || \!targetEl) return;  
+  const val \= sourceEl.value;  
+  if (\[...targetEl.options\].some(o=>o.value===val)) targetEl.value \= val;  
+}
+
+/\* \=========================  
+USAGE ALERT  
+\========================= \*/  
+function showUsageModal(){  
+  const modal \= qs('usageModal');  
+  if (\!modal) return;  
+  modal.classList.remove('hidden');  
+  document.body.classList.add('modal-open');  
+}  
+function hideUsageModal(){  
+  const modal \= qs('usageModal');  
+  if (\!modal) return;  
+  modal.classList.add('hidden');  
+  document.body.classList.remove('modal-open');  
+}  
+function ensureUsageAccepted(){  
+  if (alertAccepted) return true;  
+  showUsageModal();  
+  return false;  
+}
+
+/\* \=========================  
+FEATURE EXTRACTION SUMMARY  
+\========================= \*/  
+function normalizeFeatureLines(text){  
+  const cleaned \= String(text || '').replace(/\\r/g,'').trim();  
+  if (\!cleaned) return \[\];  
+  return cleaned  
+    .split('\\n')  
+    .map(l \=> l.trim())  
+    .filter(Boolean)  
+    .map(l \=> l.replace(/^\[-•\]\\s\*/,'').trim());  
+}
+
+function getFeatureSummary(s){  
+  const finals \= INTELLIGENCES.map(i=>({ id:i.id, label:i.label, score:s.final\[i.id\] }));  
+  const hasHigh \= finals.some(f=>f.score >= 7);  
+  const providedLines \= normalizeFeatureLines(s.featureExtraction);  
+  const hasProvided \= providedLines.length && \!/no final scores/i.test(String(s.featureExtraction || ''));
+
+  if (hasHigh && hasProvided){  
+    return { type: 'provided', lines: providedLines };  
+  }
+
+  if (hasHigh){  
+    const high \= finals.filter(f=>f.score >= 7).sort((a,b)=>b.score \- a.score);  
+    const lines \= high.map(f=>\`${f.label} (Final Score: ${f.score})\`);  
+    return { type: 'generated', lines };  
+  }
+
+  const sorted \= \[...finals\].sort((a,b)=>a.score \- b.score);  
+  const focus \= \[\];  
+  if (sorted\[0\]) focus.push(sorted\[0\]);  
+  for (let i=1; i<sorted.length && focus.length<2; i++){  
+    focus.push(sorted\[i\]);  
+  }  
+  const focusNames \= focus.map(f=>f.label).join(' and ');  
+  const message \= \`Growth opportunity: ${focusNames} are emerging areas. With guided practice and varied exposure, the student can build confidence and unlock new potential.\`;  
+  return { type: 'encourage', message };  
+}
+
+/\* \=========================  
+ACTIVITY THRESHOLD (FIT STATUS)  
+\========================= \*/  
+function getActivityThreshold(){  
+  const activity \= sanitizeText(qs('activityName')?.value || '', 80).toLowerCase();  
+  const desc \= sanitizeText(qs('activityDesc')?.value || '', 400).toLowerCase();  
+  const text \= \`${activity} ${desc}\`.trim();
+
+  const rules \= \[  
+    { keywords: \['olympiad','competition','tournament','championship','elite','varsity','selection','select','advanced','international','national','finals','hkssf'\], threshold: 75, reason: 'Competitive or elite selection' },  
+    { keywords: \['debate','math','science','physics','stem','robot','robotics','coding','programming','algorithm','academic'\], threshold: 70, reason: 'Academic or STEM intensive' },  
+    { keywords: \['council','prefect','leader','leadership','committee','captain','ambassador','service','volunteer'\], threshold: 70, reason: 'Leadership and governance' },  
+    { keywords: \['orchestra','choir','band','music','musical','drama','theatre','dance','art'\], threshold: 68, reason: 'Performance arts' },  
+    { keywords: \['sport','athletics','basketball','football','rugby','volleyball','tennis','table tennis','swim','badminton'\], threshold: 68, reason: 'Sports and athletics' },  
+    { keywords: \['club','interest','intro','beginner','explore','workshop','taster'\], threshold: 55, reason: 'Exploratory or interest-based' }  
+  \];
+
+  let chosen \= { threshold: 65, reason: 'General activity (default)' };
+
+  if (text){  
+    rules.forEach(rule=>{  
+      if (rule.keywords.some(k=>text.includes(k))){  
+        if (rule.threshold > chosen.threshold) chosen \= rule;  
+      }  
+    });  
+  }  
+  return chosen;  
+}
+
+function updateFitThresholdUI(){  
+  const { threshold, reason } \= getActivityThreshold();  
+  const val \= qs('fitThresholdValue');  
+  const reasonEl \= qs('fitThresholdReason');  
+  if (val) val.textContent \= \`${threshold}%\`;  
+  if (reasonEl) reasonEl.textContent \= reason;  
+}
+
+/\* \=========================  
+DATA LOADING  
+\========================= \*/  
+function loadDemoData(){  
+  const classes \= \['S3A','S3C','S3G','S3H','S3K','S3U'\];  
+  const demo \= \[\];  
+  missingCount \= 0;
+
+  for (let i=1; i<=36; i++){  
+    const cls \= classes\[i % classes.length\];  
+    const base \= {};  
+    const fin \= {};
+
+    INTELLIGENCES.forEach(int=>{  
+      const b \= Math.floor(Math.random()\*5) \+ 2;  
+      const f \= Math.min(10, b \+ Math.floor(Math.random()\*5));  
+      base\[int.id\] \= b;  
+      fin\[int.id\] \= f;  
+    });
+
+    const featureExtraction \= (i % 5 \=== 0\)  
+      ? '- Leadership (Interpersonal) (Final Score: 8): Led peer mentoring and service projects.\\n- Linguistic (English) (Final Score: 7): Debate finalist and strong public speaking.'  
+      : '';
+
+    const externalPortfolio \= (i % 3 \=== 0\)  
+      ? 'Grade 8 Piano; District Tennis Team'  
+      : '';
+
+    const teacherVerified \= (i % 4 \=== 0\)  
+      ? 'Demonstrates strong leadership in group projects. Consistent effort in STEM subjects.'  
+      : '';
+
+    demo.push({  
+      id: \`${cls}-${i}\`,  
+      class: cls,  
+      classNo: i,  
+      name: \`Student ${String(i).padStart(2,'0')}\`,  
+      nickname: \`S${i}\`,  
+      nameChi: \`學生${i}\`,  
+      gender: i % 2 \=== 0 ? 'F' : 'M',  
+      base,  
+      final: fin,  
+      featureExtraction,  
+      externalPortfolio,  
+      teacherVerified  
+    });  
+  }
+
+  students \= demo;  
+  postLoad();  
+}
+
+function handleFileUpload(file){  
+  if (\!file) return;  
+  Papa.parse(file, {  
+    header: false,  
+    skipEmptyLines: true,  
+    complete: (results) \=> parseRows(results.data || \[\])  
+  });  
+}
+
+function isStudentRow(row){  
+  const cls \= String(row\[0\] || '').trim();  
+  const name \= String(row\[2\] || '').trim();  
+  return /^S\\d+\[A-Z\]$/i.test(cls) && name.length > 0;  
+}
+
+function parseRows(rows){  
+  missingCount \= 0;  
+  const dataRows \= rows.filter(r \=> r && r.length >= 10).filter(isStudentRow);
+
+  students \= dataRows.map(r=>{  
+    const base \= {};  
+    const fin \= {};  
+    INTELLIGENCES.forEach(int=>{  
+      const rawBase \= r\[int.baseIndex\];  
+      const rawFinal \= r\[int.finalIndex\];  
+      const baseVal \= safeNum(rawBase);  
+      const finalVal \= safeNum(rawFinal);  
+      if (\!Number.isFinite(Number(rawBase))) missingCount++;  
+      if (\!Number.isFinite(Number(rawFinal))) missingCount++;  
+      base\[int.id\] \= baseVal;  
+      fin\[int.id\] \= finalVal;  
+    });
+
+    return {  
+      id: \`${r\[0\]}-${r\[1\]}\`,  
+      class: String(r\[0\]).trim(),  
+      classNo: String(r\[1\]).trim(),  
+      name: String(r\[2\]).trim(),  
+      nickname: String(r\[3\] || '').trim() || String(r\[2\]).trim().split(' ')\[0\],  
+      nameChi: String(r\[4\] || '').trim(),  
+      gender: String(r\[5\] || '').trim(),  
+      base,  
+      final: fin,  
+      featureExtraction: String(r\[FEATURE\_INDEX\] || '').trim(),  
+      externalPortfolio: String(r\[PORTFOLIO\_INDEX\] || '').trim(),  
+      teacherVerified: String(r\[TEACHER\_INDEX\] || '').trim()  
+    };  
+  });
+
+  postLoad();  
+}
+
+function postLoad(){  
+  qs('dataBadge').classList.remove('hidden');  
+  qs('dataBadge').textContent \= \`${students.length} students loaded\`;  
+  qs('emptyState').classList.add('hidden');  
+  qs('viewRadar').classList.remove('hidden');  
+  qs('viewScout').classList.remove('hidden');
+
+  updateSummaries();  
+  populateClassFilters();  
+  populateCohortFilters();  
+  selectStudent(students\[0\]?.id);  
+  updateFitThresholdUI();  
+  updateTalentResults();  
+  syncRadarFilterChips();  
+}
+
+/\* \=========================  
+SUMMARY \+ LIST  
+\========================= \*/  
+function updateSummaries(){  
+  const countEl \= qs('summaryCount');  
+  if (countEl) countEl.textContent \= students.length;  
+  const classes \= unique(students.map(s=>s.class));  
+  const classesEl \= qs('summaryClasses');  
+  if (classesEl) classesEl.textContent \= classes.length;  
+  const missingEl \= qs('summaryMissing');  
+  if (missingEl) missingEl.textContent \= missingCount;  
+}
+
+function populateClassFilters(){  
+  const classes \= unique(students.map(s=>s.class)).sort();  
+  const setOptions \= (el) \=> {  
+    if (\!el) return;  
+    const current \= el.value;  
+    el.innerHTML \= \`<option value="all">All Classes</option>\` \+ classes.map(c=>\`<option value="${c}">${c}</option>\`).join('');  
+    if (\[...el.options\].some(o=>o.value===current)) el.value \= current;  
+  };  
+  setOptions(qs('classFilter'));  
+  setOptions(qs('resultClass'));  
+  setOptions(qs('panelClass'));  
+  setOptions(qs('classSelect'));  
+}
+
+function populateCohortFilters(){  
+  const keys \= unique(students.map(s=>getCohortKey(s.class)).filter(Boolean));  
+  keys.sort((a,b)=>parseInt(a.slice(1),10) \- parseInt(b.slice(1),10));  
+  const options \= keys.map(k=>\`<option value="${k}">${cohortLabel(k)}</option>\`).join('');  
+  const setOptions \= (el) \=> {  
+    if (\!el) return;  
+    const current \= el.value;  
+    el.innerHTML \= \`<option value="all">All Forms</option>\` \+ options;  
+    if (\[...el.options\].some(o=>o.value===current)) el.value \= current;  
+  };  
+  setOptions(qs('cohortSelect'));  
+  setOptions(qs('resultCohort'));  
+}
+
+function getFilteredStudents(){  
+  const searchEl \= qs('studentSearch');  
+  const classEl \= qs('classFilter');  
+  const search \= (searchEl?.value || '').toLowerCase();  
+  const clsFilter \= classEl?.value || 'all';  
+  return students.filter(s=>{  
+    const matchSearch \= s.name.toLowerCase().includes(search) || s.class.toLowerCase().includes(search);  
+    const matchClass \= clsFilter \=== 'all' || s.class \=== clsFilter;  
+    return matchSearch && matchClass;  
+  });  
+}
+
+function renderStudentList(){  
+  const filtered \= getFilteredStudents();  
+  filteredStudentsCache \= filtered;  
+  updateComparisonInfo();  
+  refreshRadar();  
+  updateMedianCard();
+
+  const list \= qs('studentList');  
+  if (\!list) return;  
+  list.innerHTML \= '';  
+  if (\!filtered.length){  
+    list.innerHTML \= \`<div class="text-xs text-slate-400 text-center py-6">No students found</div>\`;  
+    return;  
+  }
+
+  filtered.forEach(s=>{  
+    const maxFinal \= Math.max(...INTELLIGENCES.map(i=>s.final\[i.id\]));  
+    const tier \= tierFromScore(maxFinal);  
+    const item \= document.createElement('div');  
+    item.className \= \`student-item ${s.id \=== currentStudentId ? 'active' : ''}\`;  
+    item.dataset.id \= s.id;  
+    const safeName \= escapeHTML(s.name);  
+    const safeClass \= escapeHTML(String(s.class));  
+    const safeNo \= escapeHTML(String(s.classNo));  
+    const safeChi \= escapeHTML(s.nameChi);  
+    item.innerHTML \= \`  
+      <div class="flex items-center justify-between gap-2">  
+        <div>  
+          <div class="text-sm font-bold text-slate-800">${safeName}</div>  
+          <div class="text-xs text-slate-500">${safeClass} (${safeNo}) · ${safeChi}</div>  
+        </div>  
+        <span class="badge ${tier.class}">${tier.label}</span>  
+      </div>  
+    \`;  
+    item.onclick \= () \=> selectStudent(s.id);  
+    list.appendChild(item);  
+  });  
+}
+
+function updateComparisonInfo(){  
+  const group \= getComparisonGroup();  
+  const label \= compareGroup \=== 'all' ? 'All Students' : compareGroup \=== 'class' ? 'Same Class' : 'Filtered List';  
+  const sourceLabel \= quartileSource \=== 'base' ? 'Base' : 'Final';  
+  const levelLabel \= getQuartileLabel(quartileLevel);  
+  const compareInfoEl \= qs('compareInfo');  
+  if (compareInfoEl) compareInfoEl.textContent \= \`${label} · n=${group.length} · ${sourceLabel} quartiles\`;  
+  const medianLabel \= qs('pMedianLabel');  
+  if (medianLabel) medianLabel.textContent \= \`Domains Above ${levelLabel} (${sourceLabel})\`;  
+  const medianSub \= qs('pMedianSub');  
+  if (medianSub) medianSub.textContent \= \`${label} · n=${group.length} · ${sourceLabel} ${levelLabel}\`;  
+  syncMedianControls();  
+}
+
+/\* \=========================  
+RADAR \+ QUARTILES  
+\========================= \*/  
+const backgroundZones \= {  
+  id: 'backgroundZones',  
+  beforeDraw(chart){  
+    if (\!showZones) return;  
+    const r \= chart.scales.r;  
+    if (\!r) return;  
+    const ctx \= chart.ctx;  
+    const x \= r.xCenter, y \= r.yCenter;  
+    const r10 \= r.getDistanceFromCenterForValue(10);  
+    const r8 \= r.getDistanceFromCenterForValue(8);  
+    const r6 \= r.getDistanceFromCenterForValue(6);  
+    const r4 \= r.getDistanceFromCenterForValue(4);
+
+    ctx.save();  
+    ctx.beginPath();  
+    ctx.arc(x,y,r10,0,2\*Math.PI);  
+    ctx.arc(x,y,r8,0,2\*Math.PI,true);  
+    ctx.fillStyle \= 'rgba(252, 211, 77, 0.15)';  
+    ctx.fill();
+
+    ctx.beginPath();  
+    ctx.arc(x,y,r8,0,2\*Math.PI);  
+    ctx.arc(x,y,r6,0,2\*Math.PI,true);  
+    ctx.fillStyle \= 'rgba(56, 189, 248, 0.12)';  
+    ctx.fill();
+
+    ctx.beginPath();  
+    ctx.arc(x,y,r6,0,2\*Math.PI);  
+    ctx.arc(x,y,r4,0,2\*Math.PI,true);  
+    ctx.fillStyle \= 'rgba(16, 185, 129, 0.10)';  
+    ctx.fill();
+
+    ctx.beginPath();  
+    ctx.arc(x,y,r4,0,2\*Math.PI);  
+    ctx.fillStyle \= 'rgba(241, 245, 249, 0.45)';  
+    ctx.fill();  
+    ctx.restore();  
+  }  
+};
+
+const labelHitboxPlugin \= {  
+  id: 'labelHitboxPlugin',  
+  afterDraw(chart){  
+    const r \= chart.scales.r;  
+    labelHitBoxes \= \[\];  
+    if (\!r || \!r.\_pointLabelItems) return;  
+    r.\_pointLabelItems.forEach((item, index)=>{  
+      const padding \= 10;  
+      labelHitBoxes.push({  
+        x: item.left \- padding,  
+        y: item.top \- padding,  
+        w: (item.right \- item.left) \+ (padding \* 2),  
+        h: (item.bottom \- item.top) \+ (padding \* 2),  
+        index  
+      });  
+    });  
+  }  
+};
+
+function quantile(sorted, q){  
+  if (\!sorted.length) return 0;  
+  const pos \= (sorted.length \- 1\) \* q;  
+  const base \= Math.floor(pos);  
+  const rest \= pos \- base;  
+  if (sorted\[base \+ 1\] \!== undefined) {  
+    return sorted\[base\] \+ rest \* (sorted\[base \+ 1\] \- sorted\[base\]);  
+  }  
+  return sorted\[base\];  
+}
+
+function computeQuartiles(group, source){  
+  const q1 \= \[\], med \= \[\], q3 \= \[\];  
+  INTELLIGENCES.forEach(int=>{  
+    const vals \= group.map(s \=> source \=== 'base' ? s.base\[int.id\] : s.final\[int.id\]).sort((a,b)=>a-b);  
+    q1.push(quantile(vals, 0.25));  
+    med.push(quantile(vals, 0.5));  
+    q3.push(quantile(vals, 0.75));  
+  });  
+  return { q1, med, q3 };  
+}
+
+function getComparisonGroup(){  
+  if (compareGroup \=== 'all') return students;  
+  if (compareGroup \=== 'class'){  
+    const s \= students.find(x=>x.id===currentStudentId);  
+    if (\!s) return students;  
+    return students.filter(x=>x.class===s.class);  
+  }  
+  if (compareGroup \=== 'filtered') return filteredStudentsCache.length ? filteredStudentsCache : students;  
+  return students;  
+}
+
+function refreshRadar(){  
+  const s \= students.find(x=>x.id===currentStudentId);  
+  if (s) renderRadarChart(s);  
+}
+
+function updateProfileHeader(s){  
+  const genderLabel \= s.gender \=== 'F' ? 'Female' : s.gender \=== 'M' ? 'Male' : (s.gender || '—');  
+  if (qs('pName')) qs('pName').textContent \= s.name || '—';  
+  if (qs('pClass')) qs('pClass').textContent \= \`Class ${s.class || '—'}\`;  
+  if (qs('pNum')) qs('pNum').textContent \= s.classNo ? \`(${s.classNo})\` : '';  
+  if (qs('pGender')) qs('pGender').textContent \= genderLabel;  
+  if (qs('pChi')) qs('pChi').textContent \= s.nameChi || '—';  
+}
+
+function renderTalentsCard(s){  
+  const container \= qs('pTalentsContainer');  
+  if (\!container) return;  
+  const talents \= INTELLIGENCES.filter(i=>s.final\[i.id\] >= 7).map(i=>i.label);  
+  if (talents.length > 0\) {  
+    const listHtml \= talents.map(t \=> \`<div class="talent-item"><span class="talent-bullet"></span>${escapeHTML(t)}</div>\`).join('');  
+    container.innerHTML \= \`  
+      <div class="mb-1">${listHtml}</div>  
+      <div class="talent-hint">  
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">  
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />  
+        </svg>  
+        Click to see explanation  
+      </div>  
+    \`;  
+  } else {  
+    container.innerHTML \= \`<span class="status-empty">No emerging talents yet</span>\`;  
+  }  
+}
+
+function renderPortfolioCard(s){  
+  const el \= qs('pPortfolio');  
+  if (\!el) return;  
+  if (s.externalPortfolio) {  
+    el.innerHTML \= \`  
+      <span class="status-available">  
+        <span class="status-icon">✓</span> Click to see the records  
+      </span>  
+    \`;  
+  } else {  
+    el.innerHTML \= \`<span class="status-empty">No records found</span>\`;  
+  }  
+}
+
+function renderTeacherCard(s){  
+  const el \= qs('pTeacher');  
+  if (\!el) return;  
+  if (s.teacherVerified) {  
+    el.innerHTML \= \`  
+      <span class="status-available">  
+        <span class="status-icon">✓</span> Click to see the records  
+      </span>  
+    \`;  
+  } else {  
+    el.innerHTML \= \`<span class="status-empty">No records found</span>\`;  
+  }  
+}
+
+function updateMedianCard(){  
+  const el \= qs('pMedianCount');  
+  if (\!el) return;  
+  const s \= students.find(x=>x.id===currentStudentId);  
+  if (\!s) { el.textContent \= '0 / 9'; return; }
+
+  const group \= getComparisonGroup();  
+  const { q1, med, q3 } \= computeQuartiles(group, quartileSource);  
+  const target \= quartileLevel \=== 'q1' ? q1 : quartileLevel \=== 'q3' ? q3 : med;  
+  const sourceScores \= quartileSource \=== 'base'  
+    ? INTELLIGENCES.map(i=>s.base\[i.id\])  
+    : INTELLIGENCES.map(i=>s.final\[i.id\]);
+
+  const above \= sourceScores.filter((v, idx)=> v >= target\[idx\]).length;  
+  el.textContent \= \`${above} / 9\`;  
+}
+
+function selectStudent(id){  
+  const s \= students.find(x=>x.id===id);  
+  if (\!s) return;  
+  currentStudentId \= id;  
+  updateProfileHeader(s);  
+  renderTalentsCard(s);  
+  renderPortfolioCard(s);  
+  renderTeacherCard(s);  
+  renderStudentList();  
+  updateMedianCard();  
+  renderSelectionList();  
+  hideDetail();  
+  hideRadarTooltip();  
+}
+
+function renderRadarChart(s){  
+  const canvas \= qs('radarChart');  
+  if (\!canvas) return;  
+  const ctx \= canvas.getContext('2d');  
+  if (radarChart) radarChart.destroy();
+
+  hideRadarTooltip();  
+  const labels \= INTELLIGENCES.map(i=>i.labelLines);  
+  const datasets \= \[\];
+
+  if (showQ1 || showMedian || showQ3){  
+    const group \= getComparisonGroup();  
+    const { q1, med, q3 } \= computeQuartiles(group, quartileSource);
+
+    if (showQ1){  
+      datasets.push({  
+        label: 'Q1 (25th)',  
+        data: q1,  
+        borderColor: 'rgba(254,202,202,0.95)',  
+        borderWidth: 2,  
+        borderDash: \[6,4\],  
+        pointRadius: 0,  
+        fill: false,  
+        order: 0  
+      });  
+    }  
+    if (showMedian){  
+      datasets.push({  
+        label: 'Median (50th)',  
+        data: med,  
+        borderColor: 'rgba(248,113,113,0.95)',  
+        borderWidth: 2,  
+        borderDash: \[4,4\],  
+        pointRadius: 0,  
+        fill: false,  
+        order: 0  
+      });  
+    }  
+    if (showQ3){  
+      datasets.push({  
+        label: 'Q3 (75th)',  
+        data: q3,  
+        borderColor: 'rgba(220,38,38,0.95)',  
+        borderWidth: 2,  
+        borderDash: \[6,4\],  
+        pointRadius: 0,  
+        fill: false,  
+        order: 0  
+      });  
+    }  
+  }
+
+  if (showBase){  
+    datasets.push({  
+      label: 'Base Score',  
+      data: INTELLIGENCES.map(i=>s.base\[i.id\]),  
+      backgroundColor: 'transparent',  
+      borderColor: '\#2563eb',  
+      pointBackgroundColor: '\#2563eb',  
+      pointBorderColor: '\#fff',  
+      borderWidth: 2,  
+      pointRadius: 4,  
+      pointHoverRadius: 6,  
+      fill: false,  
+      order: 1  
+    });  
+  }
+
+  if (showFinal){  
+    datasets.push({  
+      label: 'Final Score',  
+      data: INTELLIGENCES.map(i=>s.final\[i.id\]),  
+      backgroundColor: 'rgba(147,51,234,0.2)',  
+      borderColor: '\#9333ea',  
+      pointBackgroundColor: '\#9333ea',  
+      pointBorderColor: '\#fff',  
+      pointRadius: 5,  
+      pointHoverRadius: 7,  
+      borderWidth: 2,  
+      order: 2  
+    });  
+  }
+
+  radarChart \= new Chart(ctx, {  
+    type: 'radar',  
+    data: { labels, datasets },  
+    plugins: \[backgroundZones, labelHitboxPlugin\],  
+    options: {  
+      responsive: true,  
+      maintainAspectRatio: false,  
+      layout: { padding: 40 },  
+      scales: {  
+        r: {  
+          min: 0,  
+          max: 10,  
+          ticks: { stepSize: 2, display: false },  
+          grid: { circular: true, color: '\#e2e8f0' },  
+          pointLabels: {  
+            font: { size: 14, weight: '700', family: 'Inter' },  
+            color: '\#4f46e5',  
+            padding: 25  
+          }  
+        }  
+      },  
+      plugins: {  
+        legend: { display: false },  
+        tooltip: { enabled: false }  
+      }  
+    }  
+  });  
+}
+
+/\* \=========================  
+RADAR LAYOUT INTERACTIONS  
+\========================= \*/  
+function toggleSelectionPanel(force){  
+  const panel \= qs('selectionPanel');  
+  if (\!panel) return;  
+  const shouldOpen \= typeof force \=== 'boolean' ? force : \!panel.classList.contains('active');  
+  panel.classList.toggle('active', shouldOpen);  
+  if (shouldOpen) {  
+    renderSelectionList();  
+    const input \= qs('panelSearch');  
+    if (input) input.focus();  
+  }  
+}
+
+function renderSelectionList(){  
+  const listEl \= qs('panelStudentList');  
+  const classSelect \= qs('panelClass');  
+  const searchEl \= qs('panelSearch');  
+  if (\!listEl || \!classSelect || \!searchEl) return;
+
+  const term \= (searchEl.value || '').toLowerCase();  
+  const cls \= classSelect.value || 'all';
+
+  const filtered \= students.filter(s=>{  
+    const matchSearch \= s.name.toLowerCase().includes(term) || s.class.toLowerCase().includes(term);  
+    const matchClass \= cls \=== 'all' || s.class \=== cls;  
+    return matchSearch && matchClass;  
+  });
+
+  listEl.innerHTML \= '';  
+  if (\!filtered.length){  
+    listEl.innerHTML \= '<div class="p-4 text-center text-slate-400 text-sm">No students found</div>';  
+    return;  
+  }
+
+  filtered.forEach(s=>{  
+    const isActive \= s.id \=== currentStudentId;  
+    const name \= escapeHTML(s.name);  
+    const sub \= escapeHTML(\`${s.class} (${s.classNo})${s.nameChi ? ' · ' \+ s.nameChi : ''}\`);  
+    const el \= document.createElement('div');  
+    el.className \= \`list-item ${isActive ? 'active' : ''}\`;  
+    el.innerHTML \= \`  
+      <div>  
+        <div class="list-name">${name}</div>  
+        <div class="list-sub">${sub}</div>  
+      </div>  
+      ${isActive ? '<span class="text-indigo-600 text-lg font-bold">•</span>' : ''}  
+    \`;  
+    el.onclick \= () \=> {  
+      selectStudent(s.id);  
+      toggleSelectionPanel(false);  
+      hideDetail();  
+    };  
+    listEl.appendChild(el);  
+  });  
+}
+
+function showDetail(type){  
+  const panel \= qs('detailOverlay');  
+  const title \= qs('detailTitle');  
+  const content \= qs('detailContent');  
+  const meta \= qs('detailMeta');  
+  const s \= students.find(x=>x.id===currentStudentId);  
+  if (\!panel || \!title || \!content || \!meta || \!s) return;
+
+  panel.classList.add('active');
+
+  if (type \=== 'talents') {  
+    title.textContent \= "Talented Aspects Evidence";  
+    const summary \= getFeatureSummary(s);  
+    if (summary.type \=== 'encourage') {  
+      content.innerHTML \= \`<div class="text-slate-700">${escapeHTML(summary.message)}</div>\`;  
+      meta.textContent \= 'Source: System guidance (no high-score evidence recorded).';  
+      return;  
+    }  
+    const lines \= summary.lines || \[\];  
+    const list \= lines.map(l \=> \`<li>${escapeHTML(l)}</li>\`).join('');  
+    content.innerHTML \= \`  
+      <div class="mb-2 font-bold text-indigo-600">Evidence proving their excellence according to eClass record:</div>  
+      <ul class="list-disc list-inside space-y-1">${list || '<li>—</li>'}</ul>  
+    \`;  
+    meta.textContent \= summary.type \=== 'generated'  
+      ? 'Source: Auto-generated from Final Scores ≥ 7 (no feature text provided).'  
+      : 'Source: eClass feature extraction (column Y).';  
+  } else if (type \=== 'portfolio') {  
+    title.textContent \= "Verified External Portfolio";  
+    const txt \= s.externalPortfolio ? toSafeHTML(s.externalPortfolio) : 'No external records submitted.';  
+    content.innerHTML \= \`<div class="whitespace-pre-line">${txt}</div>\`;  
+    meta.textContent \= "Source: Verified student submission (column Z).";  
+  } else if (type \=== 'teacher') {  
+    title.textContent \= "Teacher Verified Records";  
+    const txt \= s.teacherVerified ? toSafeHTML(s.teacherVerified) : 'No teacher verification records found.';  
+    content.innerHTML \= \`<div class="whitespace-pre-line">${txt}</div>\`;  
+    meta.textContent \= "Source: Teacher verified records (column AA).";  
+  }  
+}
+
+function hideDetail(){  
+  const panel \= qs('detailOverlay');  
+  if (panel) panel.classList.remove('active');  
+}
+
+function toggleRadarFilter(target){  
+  if (target \=== 'final') {  
+    showFinal \= \!showFinal;  
+    if (\!showFinal && \!showBase) showBase \= true;  
+  }  
+  if (target \=== 'base') {  
+    showBase \= \!showBase;  
+    if (\!showFinal && \!showBase) showFinal \= true;  
+  }  
+  if (target \=== 'edb') showZones \= \!showZones;  
+  if (target \=== 'q1') showQ1 \= \!showQ1;  
+  if (target \=== 'median') showMedian \= \!showMedian;  
+  if (target \=== 'q3') showQ3 \= \!showQ3;
+
+  syncRadarFilterChips();  
+  refreshRadar();  
+}
+
+function syncRadarFilterChips(){  
+  const map \= { final: showFinal, base: showBase, edb: showZones, q1: showQ1, median: showMedian, q3: showQ3 };  
+  document.querySelectorAll('.filter-chip').forEach(btn=>{  
+    const key \= btn.dataset.target;  
+    btn.classList.toggle('active', \!\!map\[key\]);  
+  });  
+}
+
+function showRadarTooltip(index, x, y){  
+  const tooltip \= qs('chartTooltip');  
+  const container \= qs('radarContainer');  
+  if (\!tooltip || \!container) return;  
+  const data \= INTELLIGENCES\[index\];  
+  if (\!data) return;
+
+  const s \= students.find(x=>x.id===currentStudentId);  
+  const baseVal \= s ? formatScore(s.base\[data.id\]) : '—';  
+  const finalVal \= s ? formatScore(s.final\[data.id\]) : '—';
+
+  const title \= escapeHTML(data.label);  
+  const evidence \= escapeHTML(data.evidence || '');
+
+  tooltip.innerHTML \= \`  
+    <div class="font-bold text-indigo-300 mb-1 border-b border-indigo-800 pb-1">${title}</div>  
+    <div class="text-xs text-slate-300 mb-2">Base: <span class="font-semibold text-slate-100">${baseVal}</span> · Final: <span class="font-semibold text-slate-100">${finalVal}</span></div>  
+    <div class="text-sm text-slate-200">${evidence}</div>  
+  \`;
+
+  const pad \= 12;  
+  let left \= x;  
+  let top \= y \+ 10;
+
+  tooltip.classList.add('active');  
+  tooltip.style.left \= \`${left}px\`;  
+  tooltip.style.top \= \`${top}px\`;
+
+  const containerRect \= container.getBoundingClientRect();  
+  const tooltipRect \= tooltip.getBoundingClientRect();
+
+  const overflowRight \= tooltipRect.right \- containerRect.right;  
+  if (overflowRight > 0\) left \-= (overflowRight \+ pad);  
+  const overflowLeft \= containerRect.left \- tooltipRect.left;  
+  if (overflowLeft > 0\) left \+= (overflowLeft \+ pad);  
+  const overflowBottom \= tooltipRect.bottom \- containerRect.bottom;  
+  if (overflowBottom > 0\) top \-= (overflowBottom \+ pad);  
+  const overflowTop \= containerRect.top \- tooltipRect.top;  
+  if (overflowTop > 0\) top \+= (overflowTop \+ pad);
+
+  left \= Math.max(pad, left);  
+  top \= Math.max(pad, top);
+
+  tooltip.style.left \= \`${left}px\`;  
+  tooltip.style.top \= \`${top}px\`;  
+}
+
+function hideRadarTooltip(){  
+  const tooltip \= qs('chartTooltip');  
+  if (tooltip) tooltip.classList.remove('active');  
+}
+
+function handleRadarClick(e){  
+  const canvas \= e.currentTarget;  
+  const rect \= canvas.getBoundingClientRect();  
+  const clickX \= e.clientX \- rect.left;  
+  const clickY \= e.clientY \- rect.top;  
+  let clicked \= false;
+
+  labelHitBoxes.forEach(box=>{  
+    if (clickX >= box.x && clickX <= box.x \+ box.w && clickY >= box.y && clickY <= box.y \+ box.h) {  
+      showRadarTooltip(box.index, box.x \+ box.w/2, box.y \+ box.h);  
+      clicked \= true;  
+    }  
+  });
+
+  if (\!clicked) hideRadarTooltip();  
+}
+
+function handleRadarHover(e){  
+  const canvas \= e.currentTarget;  
+  const rect \= canvas.getBoundingClientRect();  
+  const hoverX \= e.clientX \- rect.left;  
+  const hoverY \= e.clientY \- rect.top;  
+  let hovering \= false;
+
+  labelHitBoxes.forEach(box=>{  
+    if (hoverX >= box.x && hoverX <= box.x \+ box.w && hoverY >= box.y && hoverY <= box.y \+ box.h) {  
+      hovering \= true;  
+    }  
+  });
+
+  canvas.style.cursor \= hovering ? 'pointer' : 'default';  
+}
+
+/\* \=========================  
+AHP 3.1 AI LOGIC (Novita AI)  
+\========================= \*/  
+async function fetchAICompletion(role, prompt, feedback \= "", retries \= 3, apiKey \= ""){  
+  const USE\_REAL\_API \= apiKey && apiKey.length > 5;  
+  if (\!USE\_REAL\_API) throw new Error("No API Key provided. Please enter your Novita API Key.");
+
+  const systemPrompt \= \`  
+You are an AHP Decision Expert (Analytic Hierarchy Process) acting as a 'Talent Scout'.
+
+CONTEXT:  
+\- Framework: Gardner's Multiple Intelligences (Adapted).
+
+Linguistic (Chinese):  
+Effective use of Chinese words, both orally and in writing.
+
+Linguistic (English):  
+Effective use of English words, both orally and in writing.
+
+Logical-Mathematical:  
+The capacity for effective use of numbers and strong reasoning skills.
+
+Spatial (Visual-Spatial):  
+The ability to accurately perceive the visual-spatial world and perform transformations on those perceptions.
+
+Musical:  
+The capacity to perceive, discriminate, transform, and express musical forms.
+
+Bodily-Kinaesthetic (Psychomotor):  
+Expertise in using one’s body to express ideas and feelings, and dexterity in using hands to produce things.
+
+Leadership (Interpersonal):  
+The ability to perceive and make distinctions in the moods, intentions, and feelings of others.
+
+Intrapersonal:  
+Self-knowledge and the capacity to act adaptively on that knowledge, including self-discipline.
+
+Naturalistic:  
+Sensitivity to patterns in nature, which includes the classification of species and understanding ecological systems.
+
+\- Objective: Rank candidates for the role: "${role}".
+
+TASK:  
+1\. Select the top 3 to 5 distinct criteria from the Allowed Keys list based on: "${prompt}".  
+2\. Create a Pairwise Comparison Matrix (NxN) for these criteria.  
+3\. Use Saaty's Scale: 1 (Equal), 3 (Moderate), 5 (Strong), 7 (Very Strong), 9 (Extreme).
+
+CRITICAL MATHEMATICAL RULES:  
+\- The diagonal (i,i) MUST be 1\.  
+\- If criteria\[i\] is MORE important than criteria\[j\], use an Integer (3, 5, 7, 9).  
+\- If criteria\[i\] is LESS important, use the Reciprocal (0.33, 0.2, 0.14, 0.11).  
+\- TRANSITIVITY: If A > B and B > C, then A > C. Do not create circular logic (Rock-Paper-Scissors).
+
+OUTPUT FORMAT (JSON Only):  
+{  
+  "criteria": \["key\_a", "key\_b", "key\_c"\],  
+  "matrix": \[  
+    \[1, 5, 3\],  
+    \[0.2, 1, 0.33\],  
+    \[0.33, 3, 1\]  
+  \],  
+  "reasoning": \["Reason 1", "Reason 2"\]  
+}
+
+Allowed Keys: ${Object.keys(DOMAINS).join(', ')}  
+\`.trim();
+
+  let messages \= \[  
+    { role: "system", content: systemPrompt },  
+    { role: "user", content: \`Analyze the Role: "${role}" and Requirements: "${prompt}".\` }  
+  \];
+
+  if (feedback) {  
+    messages.push({ role: "user", content: \`Previous attempt had inconsistencies: ${feedback}. Please regenerate with corrected logic.\` });  
+  }
+
+  try {  
+    const response \= await fetch(NOVITA\_API\_URL, {  
+      method: "POST",  
+      headers: {  
+        "Authorization": \`Bearer ${apiKey}\`,  
+        "Content-Type": "application/json"  
+      },  
+      body: JSON.stringify({  
+        model: NOVITA\_MODEL\_ID,  
+        messages: messages,  
+        response\_format: { type: "json\_object" },  
+        max\_tokens: 1500,  
+        temperature: 0.2  
+      })  
+    });
+
+    if (\!response.ok) {  
+      if (response.status \=== 429 && retries > 0\) {  
+        const status \= document.getElementById('ai-status-text');  
+        if (status) status.innerText \= \`Server Busy. Retrying... (${retries})\`;  
+        const delay \= (4 \- retries) \* 2000;  
+        await new Promise(r \=> setTimeout(r, delay));  
+        return fetchAICompletion(role, prompt, feedback, retries \- 1, apiKey);  
+      }  
+      const errText \= await response.text();  
+      throw new Error(\`Novita API Error: ${response.status} \- ${errText}\`);  
+    }
+
+    const json \= await response.json();  
+    let content \= json.choices\[0\].message.content;  
+    content \= content.replace(/\`\`\`json\\n?|\`\`\`/g, "").trim();  
+    return JSON.parse(content);  
+  } catch (error) {  
+    throw error;  
+  }  
+}
+
+function sanitizeMatrix(matrix) {  
+  const size \= matrix.length;  
+  for (let i \= 0; i < size; i++) {  
+    matrix\[i\]\[i\] \= 1;  
+    for (let j \= i \+ 1; j < size; j++) {  
+      let val \= parseFloat(matrix\[i\]\[j\]);  
+      if (\!Number.isFinite(val) || val <= 0\) val \= 1;  
+      matrix\[i\]\[j\] \= val;  
+      matrix\[j\]\[i\] \= 1 / val;  
+    }  
+  }  
+  return matrix;  
+}
+
+function findInconsistency(matrix, weights) {  
+  let maxDiff \= 0;  
+  let r \= 0, c \= 1;  
+  for (let i \= 0; i < matrix.length; i++) {  
+    for (let j \= 0; j < matrix.length; j++) {  
+      if (i \=== j) continue;  
+      const implied \= weights\[i\] / weights\[j\];  
+      const diff \= Math.abs(matrix\[i\]\[j\] \- implied);  
+      if (diff > maxDiff) {  
+        maxDiff \= diff;  
+        r \= i; c \= j;  
+      }  
+    }  
+  }  
+  return { r, c };  
+}
+
+function calibrateMatrix(matrix) {  
+  const { weights } \= calculateEigenvector(matrix);  
+  const size \= matrix.length;  
+  let newMatrix \= matrix.map(row \=> \[...row\]);
+
+  let { r, c } \= findInconsistency(matrix, weights);  
+  const perfectVal \= weights\[r\] / weights\[c\];  
+  let correctedVal \= (matrix\[r\]\[c\] \* 0.2) \+ (perfectVal \* 0.8);
+
+  if (correctedVal >= 1\) {  
+    correctedVal \= Math.round(correctedVal);  
+    if (correctedVal > 9\) correctedVal \= 9;  
+  } else {  
+    let inverse \= Math.round(1 / correctedVal);  
+    if (inverse > 9\) inverse \= 9;  
+    correctedVal \= 1 / inverse;  
+  }
+
+  newMatrix\[r\]\[c\] \= correctedVal;  
+  newMatrix\[c\]\[r\] \= 1 / correctedVal;
+
+  return newMatrix;  
+}
+
+function calculateEigenvector(matrix) {  
+  const size \= matrix.length;  
+  const colSums \= new Array(size).fill(0);  
+  for(let j=0; j<size; j++) {  
+    for(let i=0; i<size; i++) {  
+      colSums\[j\] \+= matrix\[i\]\[j\];  
+    }  
+  }  
+  const normMatrix \= matrix.map(row \=> row.map((val, j) \=> val / colSums\[j\]));  
+  const weights \= normMatrix.map(row \=> {  
+    const sum \= row.reduce((a,b) \=> a+b, 0);  
+    return sum / size;  
+  });
+
+  let lambdaMax \= 0;  
+  for(let i=0; i<size; i++) {  
+    lambdaMax \+= colSums\[i\] \* weights\[i\];  
+  }  
+  const CI \= (lambdaMax \- size) / (size \- 1);  
+  const RI\_MAP \= {1:0, 2:0, 3:0.58, 4:0.9, 5:1.12};  
+  const CR \= size > 2 ? CI / (RI\_MAP\[size\] || 1.24) : 0;
+
+  return { weights, CR };  
+}
+
+async function getValidAHPModel(role, prompt, apiKey) {  
+  let attempts \= 0;  
+  let maxAttempts \= 3;  
+  let bestResult \= null;  
+  let lowestCR \= 1.0;  
+  let feedback \= "";
+
+  while (attempts < maxAttempts) {  
+    const status \= document.getElementById('ai-status-text');  
+    if (attempts > 0 && status) status.innerText \= \`Refining Math (Attempt ${attempts \+ 1})...\`;
+
+    try {  
+      const data \= await fetchAICompletion(role, prompt, feedback, 3, apiKey);  
+      data.matrix \= sanitizeMatrix(data.matrix);
+
+      const { weights, CR } \= calculateEigenvector(data.matrix);
+
+      if (CR <= 0.1) {  
+        return { ...data, weightsArr: weights, CR: CR };  
+      }
+
+      if (CR < lowestCR) {  
+        lowestCR \= CR;  
+        bestResult \= { ...data, weightsArr: weights, CR: CR };  
+      }
+
+      const err \= findInconsistency(data.matrix, weights);  
+      const c1 \= data.criteria\[err.r\] || "Criterion A";  
+      const c2 \= data.criteria\[err.c\] || "Criterion B";  
+      feedback \= \`CR is ${CR.toFixed(2)} (Must be <0.1). Contradiction found between ${c1} and ${c2}. Fix this specific ratio.\`;  
+      attempts++;
+
+    } catch (e) {  
+      console.error(e);  
+      break;  
+    }  
+  }
+
+  if (bestResult) {  
+    console.warn("AI failed to converge. Auto-calibrating.");  
+    bestResult.matrix \= calibrateMatrix(bestResult.matrix);  
+    const recalc \= calculateEigenvector(bestResult.matrix);  
+    bestResult.weightsArr \= recalc.weights;  
+    bestResult.CR \= recalc.CR;  
+    return bestResult;  
+  }
+
+  throw new Error("Could not generate model.");  
+}
+
+async function runAHPAnalysis() {  
+  if (\!ensureUsageAccepted()) return;
+
+  const role \= sanitizeText(qs('activityName')?.value || '', 80);  
+  const prompt \= sanitizeText(qs('activityDesc')?.value || '', 600);
+
+  if (\!role || \!prompt) {  
+    alert("Please define the role and requirements first.");  
+    return;  
+  }
+
+  let apiKey \= '';  
+  try { apiKey \= getNovitaKey(); } catch (e) { alert(e.message); return; }
+
+  const btn \= qs('btn-analyze');  
+  const processing \= qs('ai-processing');  
+  const results \= qs('ahp-results');  
+  const step3 \= qs('step-3-container');  
+  const step2Bar \= qs('step-2-bar');
+
+  btn.classList.add('hidden');  
+  processing.classList.remove('hidden');  
+  results.classList.add('hidden');  
+  step3.classList.add('opacity-50', 'pointer-events-none', 'grayscale');  
+  step2Bar.classList.replace('bg-slate-200', 'bg-indigo-500');
+
+  let time \= 0;  
+  const timerInt \= setInterval(() \=> {  
+    time \+= 0.1;  
+    const t \= qs('ai-timer');  
+    if (t) t.innerText \= time.toFixed(1) \+ 's';  
+  }, 100);
+
+  const bar \= qs('ai-progress-bar');  
+  const status \= qs('ai-status-text');  
+  if (status) status.innerText \= "Extracting Criteria...";  
+  setTimeout(() \=> { if (bar) bar.style.width \= "30%"; }, 500);  
+  setTimeout(() \=> { if (bar) bar.style.width \= "70%"; if (status && \!status.innerText.includes("Retrying")) status.innerText \= "Novita AI: Reasoning..."; }, 1500);
+
+  try {  
+    const ahpData \= await getValidAHPModel(role, prompt, apiKey);
+
+    ahpResult \= {  
+      criteria: ahpData.criteria,  
+      matrix: ahpData.matrix,  
+      weightsArr: ahpData.weightsArr,  
+      weightMap: {},  
+      reasoning: ahpData.reasoning || \[\],  
+      CR: ahpData.CR  
+    };
+
+    criteriaThresholds \= {};  
+    ahpResult.criteria.forEach((key, i) \=> {  
+      ahpResult.weightMap\[key\] \= ahpResult.weightsArr\[i\];  
+      criteriaThresholds\[key\] \= criteriaThresholds\[key\] ?? 0;  
+    });
+
+    // Build full weights map for match % calculation (non-selected \= 0\)  
+    currentWeights \= {};  
+    INTELLIGENCES.forEach(int \=> { currentWeights\[int.id\] \= 0; });  
+    ahpResult.criteria.forEach((key, i) \=> { currentWeights\[key\] \= ahpResult.weightsArr\[i\]; });
+
+    clearInterval(timerInt);  
+    if (bar) bar.style.width \= "100%";  
+    if (status) status.innerText \= "Finalizing...";
+
+    setTimeout(() \=> {  
+      processing.classList.add('hidden');  
+      btn.classList.remove('hidden');  
+      btn.innerHTML \= \`<i data-lucide="refresh-cw" class="w-4 h-4"></i> Recalibrate Logic\`;  
+      btn.className \= "w-full bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-sm font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2";  
+      lucide.createIcons();
+
+      renderResults(ahpResult);  
+      renderFilters(ahpResult.criteria);  
+      activateStep3();  
+      updateTalentResults();  
+    }, 600);
+
+  } catch (e) {  
+    console.error(e);  
+    clearInterval(timerInt);  
+    alert("System Error: " \+ e.message);  
+    processing.classList.add('hidden');  
+    btn.classList.remove('hidden');  
+  }  
+}
+
+function renderResults(res) {  
+  const container \= qs('weight-bars');  
+  if (\!container) return;  
+  container.innerHTML \= '';
+
+  const crVal \= qs('cr-val');  
+  if (crVal) crVal.innerText \= res.CR.toFixed(2);
+
+  const crBadge \= crVal ? crVal.parentElement : null;  
+  if (crBadge) {  
+    if (res.CR > 0.1) crBadge.className \= "text-\[10px\] font-bold bg-red-100 text-red-700 px-2 py-1 rounded border border-red-200 uppercase tracking-wide";  
+    else crBadge.className \= "text-\[10px\] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded border border-emerald-200 uppercase tracking-wide";  
+  }
+
+  const sorted \= res.criteria  
+    .map((key, i) \=> ({ key, w: res.weightsArr\[i\] }))  
+    .sort((a,b) \=> b.w \- a.w);
+
+  sorted.forEach(item \=> {  
+    const pct \= (item.w \* 100).toFixed(1);  
+    const name \= DOMAINS\[item.key\] || item.key;  
+    container.innerHTML \+= \`  
+      <div class="relative pt-1 group">  
+        <div class="flex mb-1 items-center justify-between">  
+          <span class="text-\[11px\] font-bold uppercase tracking-wider text-slate-500">${name}</span>  
+          <div class="text-right"><span class="text-xs font-bold inline-block text-indigo-600">${pct}%</span></div>  
+        </div>  
+        <div class="overflow-hidden h-2.5 mb-2 text-xs flex rounded-full bg-slate-100">  
+          <div style="width:${pct}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-1000 group-hover:bg-indigo-600"></div>  
+        </div>  
+      </div>  
+    \`;  
+  });
+
+  qs('ahp-results')?.classList.remove('hidden');  
+}
+
+function activateStep3() {  
+  const s3 \= qs('step-3-container');  
+  const bar \= qs('step-3-bar');  
+  if (\!s3 || \!bar) return;  
+  s3.classList.remove('opacity-50', 'pointer-events-none', 'grayscale');  
+  bar.classList.replace('bg-slate-200', 'bg-indigo-500');  
+  const badge \= qs('badge-3');  
+  if (badge) badge.className \= "w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm step-active shadow-sm z-10 transition-colors";  
+}
+
+/\* \===== Step 3 Filters \===== \*/  
+function renderFilters(criteria) {  
+  const container \= qs('dynamic-filters');  
+  if (\!container) return;  
+  container.innerHTML \= '';
+
+  criteria.forEach(key \=> {  
+    const name \= DOMAINS\[key\] || key;  
+    container.innerHTML \+= \`  
+      <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">  
+        <div class="flex items-center justify-between mb-2">  
+          <label class="text-\[10px\] font-bold text-slate-500 uppercase tracking-wider truncate mr-2" title="${name}">${name}</label>  
+          <span id="thresh-val-${key}" class="text-xs font-bold text-indigo-600">0.0</span>  
+        </div>  
+        <input type="range" min="0" max="10" step="0.5" value="0"  
+          class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"  
+          oninput="updateSpecificThreshold('${key}', this.value)">  
+        <div id="thresh-meaning-${key}" class="mt-2 text-xs text-slate-600 px-2 py-1.5 rounded-md bg-slate-100">  
+          <span class="font-semibold text-slate-700">Threshold: 0.0</span>  
+        </div>  
+      </div>  
+    \`;  
+  });  
+}
+
+function updateSpecificThreshold(key, val) {  
+  const numVal \= parseFloat(val);  
+  criteriaThresholds\[key\] \= numVal;  
+  const formattedVal \= numVal.toFixed(1);
+
+  const valueEl \= qs(\`thresh-val-${key}\`);  
+  if (valueEl) valueEl.innerText \= formattedVal;
+
+  const meaningEl \= qs(\`thresh-meaning-${key}\`);  
+  if (meaningEl) {  
+    const meaningText \= \`  
+      <div class="flex items-center gap-2">  
+        <span class="inline-block w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-\[10px\] font-bold">\&lt;</span>  
+        <span class="text-red-700 font-semibold">Below ${formattedVal} \= Does Not Meet</span>  
+      </div>  
+      <div class="flex items-center gap-2 mt-1.5">  
+        <span class="inline-block w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-\[10px\] font-bold">≥</span>  
+        <span class="text-blue-700 font-semibold">${formattedVal} & Above \= Meets Requirement</span>  
+      </div>  
+    \`;  
+    meaningEl.innerHTML \= meaningText;  
+  }
+
+  updateTalentResults();  
+}
+
+/\* \===== Reasoning Modal \===== \*/  
+function showReasoningModal() {  
+  if (\!ahpResult) return;
+
+  const modal \= qs('reasoning-modal');  
+  const content \= qs('reasoning-modal-content');  
+  renderMatrixTable();
+
+  const narrative \= qs('ai-reasoning-text');  
+  if (narrative) {  
+    narrative.innerHTML \= (ahpResult.reasoning || \[\]).map(r \=>  
+      \`<div class="flex gap-3 items-start bg-white p-3 rounded-lg border border-slate-100 shadow-sm">  
+        <div class="mt-1 bg-green-100 p-1 rounded-full text-green-600">  
+          <i data-lucide="check" class="w-3 h-3"></i>  
+        </div>  
+        <p class="text-sm text-slate-600 leading-relaxed">${escapeHTML(r)}</p>  
+      </div>\`  
+    ).join('');  
+  }
+
+  lucide.createIcons();  
+  modal.classList.remove('hidden');  
+  setTimeout(() \=> {  
+    modal.classList.remove('opacity-0');  
+    content.classList.remove('scale-95');  
+    content.classList.add('scale-100');  
+  }, 10);  
+}
+
+function renderMatrixTable() {  
+  const table \= qs('matrix-table');  
+  if (\!table || \!ahpResult) return;
+
+  table.style.gridTemplateColumns \= \`repeat(${ahpResult.criteria.length \+ 1}, minmax(0, 1fr))\`;
+
+  let html \= \`<div class="bg-slate-100 p-4 font-bold text-slate-500 text-sm uppercase tracking-wider flex items-center justify-center border-b border-r border-white">Criteria</div>\`;
+
+  ahpResult.criteria.forEach(c \=> {  
+    html \+= \`<div class="bg-slate-100 p-4 font-bold text-sm text-slate-500 uppercase tracking-wider flex items-center justify-center border-b border-r border-white break-words text-center leading-tight">${DOMAINS\[c\].split(' ')\[0\]}</div>\`;  
+  });
+
+  ahpResult.matrix.forEach((row, i) \=> {  
+    html \+= \`<div class="bg-slate-100 p-4 font-bold text-sm text-slate-500 uppercase tracking-wider flex items-center justify-center border-b border-r border-white break-words text-center leading-tight">${DOMAINS\[ahpResult.criteria\[i\]\].split(' ')\[0\]}</div>\`;
+
+    row.forEach((val, j) \=> {  
+      if (i \=== j) {  
+        html \+= \`<div class="bg-slate-50 text-slate-300 p-2 flex items-center justify-center border-b border-r border-slate-100 font-mono text-base">1</div>\`;  
+      } else if (j > i) {  
+        html \+= \`  
+          <div class="bg-white p-0 border-b border-r border-slate-100 relative group">  
+            <input type="number" step="0.1" min="0.1" max="9" value="${Number(val).toFixed(2)}"  
+              class="w-full h-full p-2 text-center text-indigo-600 font-bold font-mono text-xl focus:bg-indigo-50 focus:ring-0 outline-none transition-colors"  
+              onfocus="translateCell(${i}, ${j}, this.value)"  
+              onmouseover="translateCell(${i}, ${j}, this.value)"  
+              onchange="updateMatrixCell(${i}, ${j}, this.value)"  
+            >  
+          </div>\`;  
+      } else {  
+        html \+= \`<div class="bg-slate-50 text-slate-400 p-2 flex items-center justify-center border-b border-r border-slate-100 font-mono text-base cursor-not-allowed" onmouseover="translateCell(${i}, ${j}, ${val})">${Number(val).toFixed(2)}</div>\`;  
+      }  
+    });  
+  });
+
+  table.innerHTML \= html;  
+}
+
+function translateCell(r, c, val) {  
+  const num \= parseFloat(val);  
+  const rowName \= DOMAINS\[ahpResult.criteria\[r\]\];  
+  const colName \= DOMAINS\[ahpResult.criteria\[c\]\];  
+  const textBox \= qs('matrix-translation');  
+  if (\!textBox) return;
+
+  let text \= "";  
+  if (num \=== 1\) text \= \`<strong>${rowName}</strong> is <span class="text-slate-500">Equally Important</span> to <strong>${colName}</strong>.\`;  
+  else if (num > 1\) text \= \`<strong>${rowName}</strong> is <span class="text-indigo-600 font-bold">${num}x more important</span> than <strong>${colName}</strong>.\`;  
+  else text \= \`<strong>${rowName}</strong> is <span class="text-slate-500 font-bold">less important</span> (1/${(1/num).toFixed(1)}) than <strong>${colName}</strong>.\`;
+
+  textBox.innerHTML \= text;  
+}
+
+function updateMatrixCell(r, c, val) {  
+  const num \= parseFloat(val);  
+  if (isNaN(num) || num <= 0\) return;
+
+  ahpResult.matrix\[r\]\[c\] \= num;  
+  ahpResult.matrix\[c\]\[r\] \= 1 / num;
+
+  const { weights, CR } \= calculateEigenvector(ahpResult.matrix);  
+  ahpResult.weightsArr \= weights;  
+  ahpResult.CR \= CR;
+
+  currentWeights \= {};  
+  INTELLIGENCES.forEach(int \=> { currentWeights\[int.id\] \= 0; });  
+  ahpResult.criteria.forEach((key, i) \=> {  
+    ahpResult.weightMap\[key\] \= weights\[i\];  
+    currentWeights\[key\] \= weights\[i\];  
+  });
+
+  renderMatrixTable();  
+  renderResults(ahpResult);  
+  updateTalentResults();  
+  translateCell(r, c, num);  
+}
+
+function hideReasoningModal() {  
+  const modal \= qs('reasoning-modal');  
+  const content \= qs('reasoning-modal-content');  
+  if (\!modal || \!content) return;
+
+  modal.classList.add('opacity-0');  
+  content.classList.remove('scale-100');  
+  content.classList.add('scale-95');  
+  setTimeout(() \=> { modal.classList.add('hidden'); }, 300);  
+}
+
+/\* \=========================  
+RESULTS TABLE  
+\========================= \*/  
+function computeResults(){  
+  const alpha \= scoreBlend / 100;  
+  const weightSum \= Object.values(currentWeights).reduce((a,b)=>a+b,0) || 0;
+
+  return students.map(s=>{  
+    const scores \= {};  
+    INTELLIGENCES.forEach(int=>{  
+      const val \= s.base\[int.id\]\*(1-alpha) \+ s.final\[int.id\]\*alpha;  
+      scores\[int.id\] \= val;  
+    });
+
+    let weightedSum \= 0;  
+    INTELLIGENCES.forEach(int=>{  
+      weightedSum \+= (scores\[int.id\] || 0\) \* (currentWeights\[int.id\] || 0);  
+    });
+
+    const matchScore \= weightSum ? (weightedSum / (10 \* weightSum)) \* 100 : 0;  
+    return { student: s, scores, weightedSum, matchScore };  
+  });  
+}
+
+function updateTalentResults(){  
+  if (\!students.length) return;
+
+  updateFitThresholdUI();
+
+  const tbody \= qs('resultsBody');  
+  if (\!ahpResult) {  
+    if (tbody) {  
+      tbody.innerHTML \= \`<tr><td colspan="12" class="px-6 py-12 text-center text-slate-400">Load data and run AI Priority Analysis to see results.</td></tr>\`;  
+    }  
+    if (qs('statusCounts')) qs('statusCounts').textContent \= '—';  
+    return;  
+  }
+
+  const { threshold } \= getActivityThreshold();  
+  const results \= computeResults();
+
+  const search \= (qs('resultSearch')?.value || '').toLowerCase();  
+  const cohort \= qs('resultCohort')?.value || 'all';  
+  const cls \= qs('resultClass')?.value || 'all';  
+  const gender \= qs('resultGender')?.value || 'all';  
+  const statusFilter \= qs('resultStatus')?.value || 'all';  
+  const minReqMode \= qs('resultMinReq')?.value || 'apply';  
+  const applyMinReq \= minReqMode \!== 'ignore';  
+  const topN \= qs('resultTopN')?.value || 'all';
+
+  let filtered \= results.filter(r=>{  
+    const s \= r.student;  
+    const matchSearch \= s.name.toLowerCase().includes(search) || s.class.toLowerCase().includes(search);  
+    const matchCohort \= cohort \=== 'all' || getCohortKey(s.class) \=== cohort;  
+    const matchClass \= cls \=== 'all' || s.class \=== cls;  
+    const matchGender \= gender \=== 'all' || s.gender \=== gender;  
+    const status \= r.matchScore >= threshold ? 'suitable' : 'may-not-fit';  
+    const matchStatus \= statusFilter \=== 'all' || statusFilter \=== status;
+
+    const meetsMinReq \= \!applyMinReq || ahpResult.criteria.every(key \=> (r.scores\[key\] || 0\) >= (criteriaThresholds\[key\] || 0));
+
+    return matchSearch && matchCohort && matchClass && matchGender && matchStatus && meetsMinReq;  
+  });
+
+  const suitableCount \= filtered.filter(r=>r.matchScore >= threshold).length;  
+  const notFitCount \= filtered.length \- suitableCount;  
+  if (qs('statusCounts')) qs('statusCounts').textContent \= \`Suitable: ${suitableCount} · May not fit: ${notFitCount}\`;
+
+  if (currentSort.key){  
+    filtered.sort((a,b)=>{  
+      const dir \= currentSort.dir \=== 'asc' ? 1 : \-1;  
+      if (currentSort.key \=== 'match') return (a.matchScore \- b.matchScore) \* dir;  
+      if (currentSort.key \=== 'name') return a.student.name.localeCompare(b.student.name) \* dir;  
+      if (currentSort.key \=== 'status') return ((a.matchScore >= threshold) \- (b.matchScore >= threshold)) \* dir;  
+      return (a.scores\[currentSort.key\] \- b.scores\[currentSort.key\]) \* dir;  
+    });  
+  }
+
+  if (topN \!== 'all') filtered \= filtered.slice(0, parseInt(topN,10));  
+  renderResultsTable(filtered, threshold);  
+}
+
+function renderResultsTable(rows, threshold){  
+  const tbody \= qs('resultsBody');  
+  if (\!tbody) return;
+
+  tbody.innerHTML \= '';  
+  if (\!rows.length){  
+    tbody.innerHTML \= \`<tr><td colspan="12" class="px-6 py-10 text-center text-slate-400">No results.</td></tr>\`;  
+    return;  
+  }
+
+  const topWeights \= Object.entries(currentWeights).sort((a,b)=>b\[1\]-a\[1\]).slice(0,3).map(x=>x\[0\]);
+
+  rows.forEach((r)=>{  
+    const s \= r.student;  
+    const status \= r.matchScore >= threshold ? 'Suitable' : 'May not fit';  
+    const statusClass \= r.matchScore >= threshold ? 'status-suitable' : 'status-maybe';  
+    const match \= r.matchScore.toFixed(0);
+
+    const cells \= INTELLIGENCES.map(int=>{  
+      const val \= r.scores\[int.id\];  
+      const display \= (scoreBlend \=== 0 || scoreBlend \=== 100\) ? Math.round(val) : val.toFixed(1);  
+      let cls \= 'text-slate-500';  
+      if (val >= 8\) cls \= 'font-bold text-slate-900 bg-emerald-50';  
+      if (topWeights.includes(int.id) && val >= 6\) cls \+= ' bg-indigo-50 text-indigo-900';  
+      return \`<td class="px-2 py-3 text-center ${cls}">${display}</td>\`;  
+    }).join('');
+
+    tbody.insertAdjacentHTML('beforeend', \`  
+      <tr class="result-row hover:bg-slate-50" data-student-id="${s.id}">  
+        <td class="px-3 py-3 text-center"><span class="badge ${statusClass}">${status}</span></td>  
+        <td class="px-3 py-3">  
+          <div class="font-bold text-slate-800">${escapeHTML(s.name)}</div>  
+          <div class="text-xs text-slate-500">${escapeHTML(\`${s.class} (${s.classNo})\`)} · ${escapeHTML(s.nameChi || '')}</div>  
+        </td>  
+        <td class="px-3 py-3 text-center"><span class="font-bold text-indigo-700">${match}%</span></td>  
+        ${cells}  
+      </tr>  
+    \`);  
+  });  
+}
+
+function openStudentProfile(id){  
+  if (\!id) return;  
+  selectStudent(id);  
+  qs('viewRadar').classList.remove('hidden');  
+  qs('viewScout').classList.add('hidden');  
+  qs('tabRadar').classList.add('active');  
+  qs('tabScout').classList.remove('active');
+
+  const radarSection \= qs('viewRadar');  
+  if (radarSection) radarSection.scrollIntoView({ behavior: 'smooth', block: 'start' });  
+}
+
+/\* \=========================  
+EXPORT \+ TEMPLATE  
+\========================= \*/  
+function downloadTemplate(){  
+  const headers \= \[  
+    'Class','No','English Name','Nickname','Chinese Name','Gender',  
+    'Basic Score: Linguistic (Chinese)',  
+    'Basic Score: Linguistic (English)',  
+    'Basic Score: Logical-Mathematical',  
+    'Basic Score: Spatial (Visual-Spatial)',  
+    'Basic Score: Musical',  
+    'Basic Score: Bodily-Kinaesthetic (Psychomotor)',  
+    'Basic Score: Leadership (Interpersonal)',  
+    'Basic Score: Intrapersonal',  
+    'Basic Score: Naturalistic',  
+    'Final Score: Linguistic (Chinese)',  
+    'Final Score: Linguistic (English)',  
+    'Final Score: Logical-Mathematical',  
+    'Final Score: Spatial (Visual-Spatial)',  
+    'Final Score: Musical',  
+    'Final Score: Bodily-Kinaesthetic (Psychomotor)',  
+    'Final Score: Leadership (Interpersonal)',  
+    'Final Score: Intrapersonal',  
+    'Final Score: Naturalistic',  
+    'Feature extraction',  
+    'Verified External Portfolio',  
+    'Teacher Verified Records'  
+  \];
+
+  const featureExample \= '- Bodily-Kinaesthetic (Psychomotor) (Final Score: 8): External Achievement Booster: Champion performance in inter-school table tennis.\\n- Musical (Final Score: 7): ABRSM Grade 6 piano.';  
+  const sample \= \[  
+    'S3A','1','Chan Chu Hei Carson','Carson','陳柱熙','M',  
+    5,2,6,4,1,5,3,3,2,  
+    5,2,6,4,1,8,3,3,2,  
+    featureExample,  
+    'Grade 8 Piano, HK Tennis Team',  
+    'Demonstrates strong leadership in group projects. Consistent effort in STEM subjects.'  
+  \];
+
+  const csv \= headers.map(csvEscape).join(',') \+ '\\n' \+ sample.map(csvEscape).join(',') \+ '\\n';  
+  const blob \= new Blob(\[csv\], { type:'text/csv' });  
+  const url \= URL.createObjectURL(blob);  
+  const a \= document.createElement('a');  
+  a.href \= url; a.download \= 'talent\_pool\_template.csv';  
+  document.body.appendChild(a); a.click(); a.remove();  
+}
+
+function exportResults(){  
+  if (\!ahpResult) { alert('Please run AI Priority Analysis first.'); return; }  
+  const { threshold } \= getActivityThreshold();  
+  const results \= computeResults();  
+  const header \= \['Status','Name','Class','Match%'\].concat(INTELLIGENCES.map(i=>i.short));
+
+  let csv \= header.join(',') \+ '\\n';  
+  results.forEach((r)=>{  
+    const s \= r.student;  
+    const status \= r.matchScore >= threshold ? 'Suitable' : 'May not fit';  
+    const row \= \[  
+      csvEscape(status),  
+      csvEscape(s.name),  
+      csvEscape(\`${s.class} (${s.classNo})\`),  
+      r.matchScore.toFixed(0)  
+    \];  
+    INTELLIGENCES.forEach(int=>{  
+      row.push((scoreBlend===0||scoreBlend===100) ? Math.round(r.scores\[int.id\]) : r.scores\[int.id\].toFixed(1));  
+    });  
+    csv \+= row.join(',') \+ '\\n';  
+  });
+
+  const blob \= new Blob(\[csv\], { type:'text/csv' });  
+  const url \= URL.createObjectURL(blob);  
+  const a \= document.createElement('a');  
+  a.href \= url; a.download \= 'talent\_search\_results.csv';  
+  document.body.appendChild(a); a.click(); a.remove();  
+}
+
+/\* \=========================  
+EVENTS  
+\========================= \*/  
+document.addEventListener('DOMContentLoaded', ()=>{  
+  showUsageModal();  
+  qs('btnAcknowledge').onclick \= ()=>{  
+    alertAccepted \= true;  
+    hideUsageModal();  
+  };
+
+  // Radar UI interactions  
+  const trigger \= qs('studentTrigger');  
+  if (trigger) trigger.addEventListener('click', ()=> toggleSelectionPanel());
+
+  const closeSelection \= qs('closeSelection');  
+  if (closeSelection) closeSelection.addEventListener('click', ()=> toggleSelectionPanel(false));
+
+  const detailBack \= qs('detailBack');  
+  if (detailBack) detailBack.addEventListener('click', hideDetail);
+
+  const cardTalents \= qs('cardTalents');  
+  if (cardTalents) cardTalents.addEventListener('click', ()=> showDetail('talents'));
+
+  const cardPortfolio \= qs('cardPortfolio');  
+  if (cardPortfolio) cardPortfolio.addEventListener('click', ()=> showDetail('portfolio'));
+
+  const cardTeacher \= qs('cardTeacher');  
+  if (cardTeacher) cardTeacher.addEventListener('click', ()=> showDetail('teacher'));
+
+  const panelSearch \= qs('panelSearch');  
+  if (panelSearch) panelSearch.addEventListener('input', renderSelectionList);
+
+  const panelClass \= qs('panelClass');  
+  if (panelClass) panelClass.addEventListener('change', renderSelectionList);
+
+  const medianQuartileSelect \= qs('medianQuartileSelect');  
+  if (medianQuartileSelect) medianQuartileSelect.addEventListener('change', ()=>{  
+    quartileLevel \= medianQuartileSelect.value || 'median';  
+    updateComparisonInfo();  
+    updateMedianCard();  
+  });
+
+  const medianGroupSelect \= qs('medianGroupSelect');  
+  if (medianGroupSelect) medianGroupSelect.addEventListener('change', ()=>{  
+    compareGroup \= medianGroupSelect.value || 'all';  
+    updateComparisonInfo();  
+    updateMedianCard();  
+    refreshRadar();  
+  });
+
+  document.querySelectorAll('.filter-chip').forEach(btn=>{  
+    btn.addEventListener('click', ()=> toggleRadarFilter(btn.dataset.target));  
+  });  
+  syncRadarFilterChips();
+
+  const radarCanvas \= qs('radarChart');  
+  if (radarCanvas){  
+    radarCanvas.addEventListener('click', handleRadarClick);  
+    radarCanvas.addEventListener('mousemove', handleRadarHover);  
+    radarCanvas.addEventListener('mouseleave', ()=> { radarCanvas.style.cursor \= 'default'; });  
+  }
+
+  // tab switching  
+  qs('tabRadar').onclick \= ()=>{  
+    qs('viewRadar').classList.remove('hidden');  
+    qs('viewScout').classList.add('hidden');  
+    qs('tabRadar').classList.add('active');  
+    qs('tabScout').classList.remove('active');  
+  };  
+  qs('tabScout').onclick \= ()=>{  
+    if (\!ensureUsageAccepted()) return;  
+    qs('viewScout').classList.remove('hidden');  
+    qs('viewRadar').classList.add('hidden');  
+    qs('tabScout').classList.add('active');  
+    qs('tabRadar').classList.remove('active');  
+    updateTalentResults();  
+  };
+
+  // file upload  
+  qs('fileInput').addEventListener('change', (e)=>handleFileUpload(e.target.files\[0\]));  
+  qs('btnLoadDemo').onclick \= loadDemoData;  
+  qs('btnTemplate').onclick \= downloadTemplate;
+
+  // empty buttons  
+  qs('btnUploadFromEmpty').onclick \= ()=>qs('fileInput').click();  
+  qs('btnDemoFromEmpty').onclick \= loadDemoData;  
+  qs('btnTemplateFromEmpty').onclick \= downloadTemplate;
+
+  // Step 1 inputs  
+  const activityName \= qs('activityName');  
+  if (activityName) activityName.addEventListener('input', updateFitThresholdUI);
+
+  const activityDesc \= qs('activityDesc');  
+  if (activityDesc) activityDesc.addEventListener('input', updateFitThresholdUI);
+
+  const cohortSelect \= qs('cohortSelect');  
+  if (cohortSelect) cohortSelect.addEventListener('change', ()=>{  
+    syncSelectValue(cohortSelect, qs('resultCohort'));  
+    updateTalentResults();  
+  });
+
+  const classSelect \= qs('classSelect');  
+  if (classSelect) classSelect.addEventListener('change', ()=>{  
+    syncSelectValue(classSelect, qs('resultClass'));  
+    updateTalentResults();  
+  });
+
+  const resultCohort \= qs('resultCohort');  
+  if (resultCohort) resultCohort.addEventListener('change', ()=>{  
+    syncSelectValue(resultCohort, qs('cohortSelect'));  
+    updateTalentResults();  
+  });
+
+  const resultClass \= qs('resultClass');  
+  if (resultClass) resultClass.addEventListener('change', ()=>{  
+    syncSelectValue(resultClass, qs('classSelect'));  
+    updateTalentResults();  
+  });
+
+  // results filters  
+  qs('resultSearch').addEventListener('input', updateTalentResults);  
+  qs('resultGender').addEventListener('change', updateTalentResults);  
+  qs('resultStatus').addEventListener('change', updateTalentResults);  
+  qs('resultTopN').addEventListener('change', updateTalentResults);  
+  qs('resultMinReq').addEventListener('change', updateTalentResults);
+
+  // sorting  
+  document.querySelectorAll('\[data-sort\]').forEach(th=>{  
+    th.addEventListener('click', ()=>{  
+      const key \= th.dataset.sort;  
+      if (currentSort.key \=== key){  
+        if (currentSort.dir \=== 'desc') currentSort.dir \= 'asc';  
+        else { currentSort \= { key: null, dir: 'desc' }; hasUserSorted \= false; }  
+      } else {  
+        currentSort \= { key, dir: 'desc' };  
+        hasUserSorted \= true;  
+      }  
+      document.querySelectorAll('\[data-sort\]').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));  
+      if (currentSort.key){  
+        th.classList.add(currentSort.dir \=== 'asc' ? 'sorted-asc' : 'sorted-desc');  
+      }  
+      updateTalentResults();  
+    });  
+  });
+
+  // row click \-> open profile  
+  const resultsBody \= qs('resultsBody');  
+  if (resultsBody){  
+    resultsBody.addEventListener('click', (e)=>{  
+      const tr \= e.target.closest('tr\[data-student-id\]');  
+      if (\!tr) return;  
+      openStudentProfile(tr.dataset.studentId);  
+    });  
+  }
+
+  qs('btnExport').onclick \= exportResults;
+
+  if (window.lucide && typeof lucide.createIcons \=== 'function') {  
+    lucide.createIcons();  
+  }  
+});
+
+/\* \=========================  
+SCORE EXPLANATION (DUAL-TRACK)  
+\========================= \*/  
+const scoreState \= {  
+  percentile: 50,  
+  baseScore: 4,  
+  boosterScore: 0,  
+  finalScore: 4,  
+  isCapped: false,  
+  capReason: ''  
+};
+
+function getBaseScore(p) {  
+  if (p <= 20\) return 6;  
+  if (p <= 40\) return 5;  
+  if (p <= 60\) return 4;  
+  if (p <= 75\) return 3;  
+  if (p <= 95\) return 2;  
+  return 1;  
+}
+
+function updateScoreState() {  
+  scoreState.baseScore \= getBaseScore(scoreState.percentile);  
+  const rawTotal \= scoreState.baseScore \+ scoreState.boosterScore;  
+  scoreState.isCapped \= false;  
+  let maxAllowed \= 10;  
+  let capMsg \= "";
+
+  if (scoreState.percentile > 40\) {  
+    maxAllowed \= 6;  
+    capMsg \= "A score of 7+ requires being in the Top 40% academically.";  
+  } else if (scoreState.percentile > 15\) {  
+    maxAllowed \= 7;  
+    capMsg \= "A score of 8+ requires being in the Top 15% academically.";  
+  } else if (scoreState.percentile > 5\) {  
+    maxAllowed \= 8;  
+    capMsg \= "A score of 9+ requires being in the Top 5% academically.";  
+  } else if (scoreState.percentile > 2\) {  
+    maxAllowed \= 9;  
+    capMsg \= "A score of 10 requires being in the Top 2% academically.";  
+  }
+
+  if (rawTotal > maxAllowed) {  
+    scoreState.finalScore \= maxAllowed;  
+    scoreState.isCapped \= true;  
+    scoreState.capReason \= \`<strong>Consistency Check Failed:</strong> ${capMsg}<br>Even with high engagement, the final score is capped at ${maxAllowed} to maintain holistic alignment.\`;  
+  } else {  
+    scoreState.finalScore \= Math.min(rawTotal, 10);  
+    scoreState.capReason \= "";  
+  }
+
+  renderScoreExplainer();  
+}
+
+function renderScoreExplainer() {  
+  const percentileEl \= document.getElementById('percentile-disp');  
+  const finalScoreEl \= document.getElementById('final-score');  
+  const tierEl \= document.getElementById('tier-badge');  
+  if (\!percentileEl || \!finalScoreEl || \!tierEl) return;
+
+  percentileEl.innerText \= \`Top ${scoreState.percentile}%\`;  
+  finalScoreEl.innerText \= scoreState.finalScore.toFixed(1);
+
+  let tierData \= { text: "Level 1A: Core Competence", class: "bg-slate-100 text-slate-600 border-slate-200" };  
+  if (scoreState.finalScore >= 9\) tierData \= { text: "Level 3: Exceptionally Gifted", class: "bg-amber-100 text-amber-700 border-amber-200" };  
+  else if (scoreState.finalScore >= 7\) tierData \= { text: "Level 2: Talent Pool Ready", class: "bg-sky-100 text-sky-700 border-sky-200" };  
+  else if (scoreState.finalScore >= 5\) tierData \= { text: "Level 1B: High Ability", class: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+
+  tierEl.className \= \`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide border transition-colors ${tierData.class}\`;  
+  tierEl.innerText \= tierData.text;
+
+  const baseW \= scoreState.baseScore \* 10;  
+  const boosterW \= (scoreState.finalScore \- scoreState.baseScore) \* 10;  
+  const capW \= scoreState.isCapped ? ((scoreState.baseScore \+ scoreState.boosterScore \- scoreState.finalScore) \* 10\) : 0;
+
+  const barBase \= document.getElementById('bar-base');  
+  const barBooster \= document.getElementById('bar-booster');  
+  const barCap \= document.getElementById('bar-cap');  
+  const lockIcon \= document.getElementById('lock-icon');
+
+  if (barBase && barBooster && barCap && lockIcon) {  
+    barBase.style.width \= \`${baseW}%\`;  
+    barBase.innerText \= \`Base ${scoreState.baseScore}\`;  
+    barBooster.style.width \= \`${boosterW}%\`;  
+    barBooster.innerText \= boosterW > 0 ? \`+${scoreState.finalScore \- scoreState.baseScore}\` : '';  
+    barCap.style.width \= \`${capW}%\`;
+
+    if (scoreState.isCapped) {  
+      lockIcon.classList.remove('hidden');  
+      const lockPos \= baseW \+ boosterW \+ (capW/2);  
+      lockIcon.style.left \= \`calc(${lockPos}% \- 16px)\`;  
+      lockIcon.classList.add('lock-shake');  
+      setTimeout(() \=> lockIcon.classList.remove('lock-shake'), 500);  
+    } else {  
+      lockIcon.classList.add('hidden');  
+    }  
+  }
+
+  \[1,2,3,4\].forEach(id \=> {  
+    const btn \= document.getElementById(\`act-${id}\`);  
+    const ring \= document.getElementById(\`check-${id}\`);  
+    const dot \= ring ? ring.firstElementChild : null;  
+    if (\!btn || \!ring || \!dot) return;  
+    if (scoreState.boosterScore \=== id) {  
+      btn.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50/50');  
+      btn.classList.remove('border-slate-200');  
+      btn.classList.add('border-indigo-200');  
+      dot.classList.remove('opacity-0');  
+      ring.classList.add('bg-indigo-500', 'border-indigo-500');  
+      ring.classList.remove('border-slate-300');  
+    } else {  
+      btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50/50', 'border-indigo-200');  
+      btn.classList.add('border-slate-200');  
+      dot.classList.add('opacity-0');  
+      ring.classList.remove('bg-indigo-500', 'border-indigo-500');  
+      ring.classList.add('border-slate-300');  
+    }  
+  });
+
+  generateScoreAnalysis();  
+}
+
+function generateScoreAnalysis() {  
+  const box \= document.getElementById('analysis-box');  
+  const icon \= document.getElementById('analysis-icon');  
+  const title \= document.getElementById('analysis-title');  
+  const text \= document.getElementById('analysis-text');  
+  if (\!box || \!icon || \!title || \!text) return;
+
+  if (scoreState.isCapped) {  
+    box.className \= "bg-rose-50 rounded-2xl p-5 border border-rose-200 transition-colors duration-500";  
+    icon.setAttribute('data-lucide', 'shield-alert');  
+    icon.className \= "w-5 h-5 text-rose-500";  
+    title.innerText \= "Consistency Check Failed";  
+    title.className \= "text-sm font-bold text-rose-800 mb-1";  
+    text.innerHTML \= scoreState.capReason;  
+  } else if (scoreState.finalScore >= 9\) {  
+    box.className \= "bg-amber-50 rounded-2xl p-5 border border-amber-200 transition-colors duration-500";  
+    icon.setAttribute('data-lucide', 'star');  
+    icon.className \= "w-5 h-5 text-amber-500";  
+    title.innerText \= "Dual-Track Excellence";  
+    title.className \= "text-sm font-bold text-amber-800 mb-1";  
+    text.innerHTML \= \`This student demonstrates <strong>Elite Alignment</strong>. Their Top ${scoreState.percentile}% academic standing (Base ${scoreState.baseScore}) perfectly supports their high engagement, validating them for top-tier HKAGE nomination.\`;  
+  } else if (scoreState.boosterScore > 0\) {  
+    box.className \= "bg-indigo-50 rounded-2xl p-5 border border-indigo-200 transition-colors duration-500";  
+    icon.setAttribute('data-lucide', 'trending-up');  
+    icon.className \= "w-5 h-5 text-indigo-500";  
+    title.innerText \= "The Engagement Effect";  
+    title.className \= "text-sm font-bold text-indigo-800 mb-1";  
+    text.innerHTML \= \`Active participation (+${scoreState.boosterScore}) has successfully lifted the student's profile. They have moved from a base capability of Level ${scoreState.baseScore <= 4 ? '1A' : '1B'} to a holistic performance of <strong>Level ${scoreState.finalScore >= 7 ? '2' : '1B'}</strong>.\`;  
+  } else {  
+    box.className \= "bg-slate-50 rounded-2xl p-5 border border-slate-200 transition-colors duration-500";  
+    icon.setAttribute('data-lucide', 'info');  
+    icon.className \= "w-5 h-5 text-slate-400";  
+    title.innerText \= "Baseline Analysis";  
+    title.className \= "text-sm font-bold text-slate-700 mb-1";  
+    text.innerHTML \= \`Current profile relies solely on academic capacity. Adding a "Booster" (School Team or Club) could reveal hidden potential and unlock higher tiers of support.\`;  
+  }
+
+  if (window.lucide && typeof lucide.createIcons \=== 'function') {  
+    lucide.createIcons();  
+  }  
+}
+
+function manualUpdate() {  
+  const slider \= document.getElementById('base-slider');  
+  if (\!slider) return;  
+  scoreState.percentile \= parseInt(slider.value, 10);  
+  updateScoreState();  
+}
+
+function toggleActivity(id) {  
+  if (scoreState.boosterScore \=== id) scoreState.boosterScore \= 0;  
+  else scoreState.boosterScore \= id;  
+  updateScoreState();  
+}
+
+function loadPreset(type) {  
+  const slider \= document.getElementById('base-slider');  
+  if (\!slider) return;
+
+  if (type \=== 'academic') {  
+    scoreState.percentile \= 2;  
+    scoreState.boosterScore \= 0;  
+    slider.value \= 2;  
+  } else if (type \=== 'balanced') {  
+    scoreState.percentile \= 35;  
+    scoreState.boosterScore \= 2;  
+    slider.value \= 35;  
+  } else if (type \=== 'gatekeeper') {  
+    scoreState.percentile \= 20;  
+    scoreState.boosterScore \= 4;  
+    slider.value \= 20;  
+  }  
+  updateScoreState();  
+}
+
+function resetSim() {  
+  const slider \= document.getElementById('base-slider');  
+  if (\!slider) return;  
+  scoreState.percentile \= 50;  
+  scoreState.boosterScore \= 0;  
+  slider.value \= 50;  
+  updateScoreState();  
+}
+
+// Init  
+updateScoreState();  
+if (window.lucide && typeof lucide.createIcons \=== 'function') {  
+  lucide.createIcons();  
+}  
+</script>
+
+</body>  
+</html>
+
